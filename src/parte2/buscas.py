@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from src.comum.grafo import distancias_em_largura
 from src.comum.tipos import Adjacencia, ArestaJogos
 
+Sucessores = dict[str, set[str]]
+
 
 @dataclass(frozen=True)
 class Eulerianidade:
@@ -164,3 +166,70 @@ def fechar_filho(
         pontes.add((min(pai, filho), max(pai, filho)))
     if pai != raiz and menor[filho] >= descoberta[pai]:
         articulacoes.add(pai)
+
+
+def encontrar_componentes_fortes(sucessores: Sucessores) -> list[set[str]]:
+    """
+    Algoritmo de Tarjan (1972) para componentes fortemente conexas, com DFS iterativa.
+    Cada vértice recebe um tempo de descoberta e um low-link, o menor tempo alcançável pela
+    sua subárvore com no máximo um arco para um vértice ainda na pilha. Quando o low-link de
+    v é igual ao seu tempo de descoberta, v é a raiz de uma componente, que sai da pilha.
+
+    :param sucessores: grafo dirigido, v -> conjunto de w com arco v -> w
+    :return: componentes fortemente conexas, da maior para a menor
+
+    Exemplo:
+        >>> g = {"a": {"b"}, "b": {"c"}, "c": {"a", "d"}, "d": set()}
+        >>> [sorted(c) for c in encontrar_componentes_fortes(g)]
+        [['a', 'b', 'c'], ['d']]
+    """
+    descoberta: dict[str, int] = {}
+    menor: dict[str, int] = {}
+    na_pilha: set[str] = set()
+    pilha_tarjan: list[str] = []
+    componentes: list[set[str]] = []
+    for raiz in sucessores:
+        if raiz in descoberta:
+            continue
+        descoberta[raiz] = menor[raiz] = len(descoberta)
+        pilha_tarjan.append(raiz)
+        na_pilha.add(raiz)
+        pilha_dfs = [(raiz, iter(sucessores[raiz]))]
+        while pilha_dfs:
+            v, proximos = pilha_dfs[-1]
+            w = next(proximos, None)
+            if w is not None:
+                if w not in descoberta:
+                    descoberta[w] = menor[w] = len(descoberta)
+                    pilha_tarjan.append(w)
+                    na_pilha.add(w)
+                    pilha_dfs.append((w, iter(sucessores.get(w, ()))))
+                elif w in na_pilha:
+                    menor[v] = min(menor[v], descoberta[w])
+                continue
+            pilha_dfs.pop()
+            if pilha_dfs:
+                pai = pilha_dfs[-1][0]
+                menor[pai] = min(menor[pai], menor[v])
+            if menor[v] == descoberta[v]:
+                componente = set()
+                while True:
+                    u = pilha_tarjan.pop()
+                    na_pilha.discard(u)
+                    componente.add(u)
+                    if u == v:
+                        break
+                componentes.append(componente)
+    return sorted(componentes, key=len, reverse=True)
+
+
+def orientar_nos_dois_sentidos(adjacencia: Adjacencia) -> Sucessores:
+    """
+    :param adjacencia: grafo não dirigido
+    :return: grafo dirigido com os arcos p -> q e q -> p para cada aresta {p, q}
+
+    Exemplo:
+        >>> orientar_nos_dois_sentidos({"a": {"b"}, "b": {"a"}})
+        {'a': {'b'}, 'b': {'a'}}
+    """
+    return {v: set(vizinhos) for v, vizinhos in adjacencia.items()}
