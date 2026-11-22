@@ -125,3 +125,16 @@ def calcular_referencia(
         articulacoes=set(nx.articulation_points(grafo)),
         euleriano=nx.is_eulerian(grafo),
     )
+
+
+def calcular_intermediacao(adjacencia: Adjacencia) -> dict[str, float]:
+    """
+    :param adjacencia: grafo não dirigido, sem pesos
+    :return: betweenness exata de cada vértice, em C pelo igraph (Brandes, O(n·m) ≈ 100 s na LCC)
+
+    Exemplo:
+        >>> calcular_intermediacao({"1": {"2"}, "2": {"1", "3"}, "3": {"2"}})
+        {'1': 0.0, '2': 1.0, '3': 0.0}
+    """
+    grafo = converter_para_igraph(adjacencia)
+    return dict(zip(grafo.vs["name"], grafo.betweenness(directed=False)))

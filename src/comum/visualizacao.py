@@ -4,6 +4,7 @@ from pathlib import Path
 import matplotlib
 import matplotlib.pyplot as plt
 import networkx as nx
+import numpy as np
 from matplotlib.figure import Figure
 
 from src.comum.tipos import Jogo, PesosArestas
@@ -125,6 +126,77 @@ def plotar_escalabilidade(
         )
     eixo.set(xscale="log", yscale="log", xlabel=rotulo_custo, ylabel="tempo médio (s)")
     eixo.grid(True, which="major", alpha=0.3)
+    eixo.legend(fontsize=8, frameon=False)
+    figura.tight_layout()
+    return figura
+
+
+def plotar_ccdf_com_ajuste(
+    ccdf: dict[int, float], gama: float, k_min: int, cauda: float
+) -> Figure:
+    """
+    :param ccdf: P(K >= k) por k
+    :param gama: expoente ajustado
+    :param k_min: início da cauda
+    :param cauda: P(K >= k_min), para a reta começar sobre a curva empírica
+    :return: CCDF em log-log com a reta k^(1−γ) da lei de potência na cauda
+
+    Exemplo:
+        figura = plotar_ccdf_com_ajuste({1: 1.0, 2: 0.25}, 2.5, 1, 1.0)
+    """
+    figura, eixo = plt.subplots(figsize=(6, 4))
+    eixo.loglog(list(ccdf), list(ccdf.values()), "o", ms=2, label="empírica")
+    graus = [k for k in ccdf if k >= k_min]
+    modelo = [cauda * ((k - 0.5) / (k_min - 0.5)) ** (1 - gama) for k in graus]
+    eixo.loglog(graus, modelo, "-", lw=2, label=f"lei de potência, γ = {gama:.2f}")
+    eixo.axvline(k_min, ls=":", color="gray", label=f"k_min = {k_min}")
+    eixo.set(xlabel="grau k", ylabel="P(K ≥ k)")
+    eixo.grid(True, which="major", alpha=0.3)
+    eixo.legend(fontsize=8, frameon=False)
+    figura.tight_layout()
+    return figura
+
+
+def plotar_robustez(
+    aleatorio: dict[str, list[float]], ataques: dict[str, dict[str, float]]
+) -> Figure:
+    """
+    :param aleatorio: métrica -> valores das T repetições de remoção aleatória
+    :param ataques: centralidade -> {métrica: valor após remover o top r}
+    :return: um boxplot por métrica (aleatório, com média ± DP) e um marcador por ataque
+
+    Exemplo:
+        figura = plotar_robustez({"S": [0.9, 0.95]}, {"grau": {"S": 0.5}})
+    """
+    figura, eixos = plt.subplots(1, len(aleatorio), figsize=(3 * len(aleatorio), 3.5))
+    for eixo, (metrica, valores) in zip(eixos, aleatorio.items()):
+        eixo.boxplot(valores, widths=0.5, showmeans=True)
+        media, desvio = float(np.mean(valores)), float(np.std(valores, ddof=1))
+        eixo.errorbar(1.35, media, yerr=desvio, fmt="o", color="black", capsize=3)
+        for posicao, (nome, valores_ataque) in enumerate(ataques.items(), start=2):
+            eixo.plot(posicao, valores_ataque[metrica], "X", ms=9, label=f"ataque: {nome}")
+        eixo.set_xticks(range(1, len(ataques) + 2), ["aleatória", *ataques], fontsize=8)
+        eixo.set_title(metrica, fontsize=10)
+        eixo.grid(True, axis="y", alpha=0.3)
+    figura.tight_layout()
+    return figura
+
+
+def plotar_curvas_de_ataque(fracoes: list[float], curvas: dict[str, list[float]]) -> Figure:
+    """
+    :param fracoes: frações f de vértices removidos
+    :param curvas: estratégia -> S(f)
+    :return: S(f) de cada estratégia; a linha vertical marca os 5% do Apêndice C
+
+    Exemplo:
+        figura = plotar_curvas_de_ataque([0.0, 0.1], {"grau": [1.0, 0.4]})
+    """
+    figura, eixo = plt.subplots(figsize=(6, 4))
+    for estrategia, curva in curvas.items():
+        eixo.plot(fracoes, curva, "o-", ms=3, label=estrategia)
+    eixo.axvline(0.05, ls=":", color="gray")
+    eixo.set(xlabel="fração removida f", ylabel="S(f)", ylim=(0, 1.02))
+    eixo.grid(True, alpha=0.3)
     eixo.legend(fontsize=8, frameon=False)
     figura.tight_layout()
     return figura
