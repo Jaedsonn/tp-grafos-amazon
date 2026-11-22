@@ -1,0 +1,50 @@
+medida,valor
+consoles,290
+consoles_fracao_vertices,0.013625
+consoles_fracao_pontas,0.028966
+consoles_grau_medio,64.072414
+grau_medio_lcc,30.13926
+mistura_console_console,2.827889
+mistura_console_acessório,1.231732
+mistura_console_jogo,1.009222
+mistura_acessório_acessório,2.678001
+mistura_jogo_jogo,1.306201
+homofilia_plataforma_observada,0.523817
+homofilia_plataforma_esperada,0.115215
+homofilia_plataforma_r,0.461809
+homofilia_plataforma_r_ponderado,0.537382
+homofilia_plataforma_nulo_media,0.152606
+homofilia_plataforma_nulo_dp,0.003348
+homofilia_plataforma_nulo_max,0.163886
+homofilia_família_observada,0.552154
+homofilia_família_esperada,0.097407
+homofilia_família_r,0.503823
+homofilia_família_r_ponderado,0.591396
+homofilia_família_nulo_media,0.105563
+homofilia_família_nulo_dp,0.003492
+homofilia_família_nulo_max,0.116321
+homofilia_classe_observada,0.63037
+homofilia_classe_esperada,0.379124
+homofilia_classe_r,0.404663
+homofilia_classe_r_ponderado,0.443318
+homofilia_classe_nulo_media,0.340257
+homofilia_classe_nulo_dp,0.005804
+homofilia_classe_nulo_max,0.359747
+gini_forca_consoles,0.762453
+gini_forca_lcc,0.820064
+top5_consoles_fracao_forca,0.245132
+console_console_peso,2521
+console_console_mesma_familia,0.541452
+par_PlayStation 4_Xbox One,134
+par_Xbox 360_Xbox One,119
+par_Nintendo DS_Sony PSP,68
+cobertura_max,0.541806
+cobertura_max_familia,PlayStation Vita
+cobertura_min,0.04058
+cobertura_min_familia,Wii
+topo_r_grau_consoles,39
+topo_r_grau_fracao_consoles,0.03662
+topo20_grau_consoles,0
+topo_r_betweenness_consoles,26
+topo_r_betweenness_fracao_consoles,0.024413
+topo20_betweenness_consoles,1

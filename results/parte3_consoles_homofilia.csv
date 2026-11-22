@@ -1,0 +1,4 @@
+rótulo,valores,mesma ponta,esperado,razão,r,r ponderado,nulo: média ± DP,nulo: máximo
+plataforma (bruta),18,52.4%,11.5%,4.5,0.462,0.537,15.3% ± 0.3%,16.4%
+família (normalizada),40,55.2%,9.7%,5.7,0.504,0.591,10.6% ± 0.3%,11.6%
+classe de produto,6,63.0%,37.9%,1.7,0.405,0.443,34.0% ± 0.6%,36.0%

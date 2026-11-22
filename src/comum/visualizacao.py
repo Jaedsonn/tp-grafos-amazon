@@ -174,7 +174,9 @@ def plotar_robustez(
         media, desvio = float(np.mean(valores)), float(np.std(valores, ddof=1))
         eixo.errorbar(1.35, media, yerr=desvio, fmt="o", color="black", capsize=3)
         for posicao, (nome, valores_ataque) in enumerate(ataques.items(), start=2):
-            eixo.plot(posicao, valores_ataque[metrica], "X", ms=9, label=f"ataque: {nome}")
+            eixo.plot(
+                posicao, valores_ataque[metrica], "X", ms=9, label=f"ataque: {nome}"
+            )
         eixo.set_xticks(range(1, len(ataques) + 2), ["aleatória", *ataques], fontsize=8)
         eixo.set_title(metrica, fontsize=10)
         eixo.grid(True, axis="y", alpha=0.3)
@@ -182,7 +184,9 @@ def plotar_robustez(
     return figura
 
 
-def plotar_curvas_de_ataque(fracoes: list[float], curvas: dict[str, list[float]]) -> Figure:
+def plotar_curvas_de_ataque(
+    fracoes: list[float], curvas: dict[str, list[float]]
+) -> Figure:
     """
     :param fracoes: frações f de vértices removidos
     :param curvas: estratégia -> S(f)
@@ -198,5 +202,53 @@ def plotar_curvas_de_ataque(fracoes: list[float], curvas: dict[str, list[float]]
     eixo.set(xlabel="fração removida f", ylabel="S(f)", ylim=(0, 1.02))
     eixo.grid(True, alpha=0.3)
     eixo.legend(fontsize=8, frameon=False)
+    figura.tight_layout()
+    return figura
+
+
+def plotar_concentracao_por_classe(
+    participacao: dict[str, tuple[float, float]],
+    razoes: dict[tuple[str, str], float],
+    classes: list[str],
+) -> Figure:
+    """
+    :param participacao: classe -> (fração dos vértices, fração das pontas de aresta)
+    :param razoes: (classe a, classe b) -> e_ab / (a_a a_b), observado sobre o esperado
+    :param classes: ordem das classes nos dois painéis
+    :return: barras de participação (esquerda) e mapa de calor da mistura em escala log (direita)
+
+    Exemplo:
+        figura = plotar_concentracao_por_classe({"jogo": (0.5, 0.6)}, {("jogo", "jogo"): 1.3}, ["jogo"])
+    """
+    figura, (barras, calor) = plt.subplots(1, 2, figsize=(10, 4))
+    posicoes = np.arange(len(classes))
+    vertices = [participacao[c][0] for c in classes]
+    pontas = [participacao[c][1] for c in classes]
+    barras.bar(posicoes - 0.2, vertices, 0.4, label="vértices", color=COR_OUTRAS)
+    barras.bar(posicoes + 0.2, pontas, 0.4, label="pontas de aresta", color="#2F6DB5")
+    barras.set_xticks(posicoes, classes, rotation=30, ha="right", fontsize=8)
+    barras.set(ylabel="fração da LCC")
+    barras.grid(True, axis="y", alpha=0.3)
+    barras.legend(fontsize=8, frameon=False)
+    matriz = np.array([[razoes.get((a, b), np.nan) for b in classes] for a in classes])
+    imagem = calor.imshow(
+        np.log2(matriz), cmap="RdBu_r", vmin=-3, vmax=3, interpolation="nearest"
+    )
+    for i in range(len(classes)):
+        for j in range(len(classes)):
+            escuro = abs(np.log2(matriz[i, j])) > 2
+            calor.text(
+                j,
+                i,
+                f"{matriz[i, j]:.2f}",
+                ha="center",
+                va="center",
+                fontsize=7,
+                color="white" if escuro else "black",
+            )
+    calor.set_xticks(posicoes, classes, rotation=30, ha="right", fontsize=8)
+    calor.set_yticks(posicoes, classes, fontsize=8)
+    barra_cor = figura.colorbar(imagem, ax=calor, fraction=0.046)
+    barra_cor.set_label("log₂(observado / esperado)", fontsize=8)
     figura.tight_layout()
     return figura
