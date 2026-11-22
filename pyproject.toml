@@ -14,7 +14,6 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest",
     "black",
     "jupyter>=1.1.1",
     "ipykernel>=7.4.0",
@@ -27,5 +26,4 @@ package = false
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
-testpaths = ["tests", "src"]
 addopts = "--doctest-modules -q"
