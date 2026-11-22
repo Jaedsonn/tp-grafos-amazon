@@ -48,3 +48,7 @@ topo20_grau_consoles,0
 topo_r_betweenness_consoles,26
 topo_r_betweenness_fracao_consoles,0.024413
 topo20_betweenness_consoles,1
+panelas_fracao_dentro,0.830549
+top3_fracao_dentro_lcc,0.760324
+mapa_ligacoes,30
+mapa_ligacoes_mesmo_fabricante,20

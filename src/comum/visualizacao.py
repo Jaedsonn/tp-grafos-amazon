@@ -271,3 +271,124 @@ def plotar_ccdf_modelos(curvas: dict[str, dict[int, float]]) -> Figure:
     eixo.legend(fontsize=8, frameon=False)
     figura.tight_layout()
     return figura
+
+
+CORES_FABRICANTE = {
+    "Sony": "#2F6DB5",
+    "Microsoft": "#3C9A3C",
+    "Nintendo": "#D2423A",
+    "Sega": "#7E57C2",
+    "Computador": "#8C8C8C",
+    "outras": "#C9A227",
+}
+
+
+def desenhar_mapa_de_familias(
+    ligacoes: dict[tuple[str, str], float],
+    produtos: dict[str, int],
+    fabricantes: dict[str, str],
+) -> Figure:
+    """
+    :param ligacoes: {(família, família): razão observado/esperado}
+    :param produtos: produtos de cada família, que define o tamanho do nó
+    :param fabricantes: fabricante de cada família, que define a cor
+    :return: grafo reduzido entre famílias; a espessura e a cor da aresta crescem com a razão
+
+    Exemplo:
+        figura = desenhar_mapa_de_familias({("Wii", "Wii U"): 3.2}, {"Wii": 1393, "Wii U": 331}, {"Wii": "Nintendo", "Wii U": "Nintendo"})
+    """
+    grafo = nx.Graph()
+    grafo.add_nodes_from(produtos)
+    grafo.add_weighted_edges_from((a, b, r) for (a, b), r in ligacoes.items())
+    posicoes = nx.kamada_kawai_layout(grafo, weight=None)
+    figura, eixo = plt.subplots(figsize=(8, 7))
+    for a, b, razao in grafo.edges(data="weight"):
+        intensidade = min(1.0, np.log2(razao) / np.log2(25))
+        eixo.plot(
+            *zip(posicoes[a], posicoes[b]),
+            color=plt.get_cmap("Greys")(0.35 + 0.6 * intensidade),
+            lw=0.6 + 3.5 * intensidade,
+            zorder=1,
+        )
+    for familia, quantidade in produtos.items():
+        x, y = posicoes[familia]
+        eixo.scatter(
+            x,
+            y,
+            s=30 + quantidade / 4,
+            color=CORES_FABRICANTE[fabricantes[familia]],
+            edgecolor="white",
+            zorder=2,
+        )
+        eixo.text(x, y - 0.06, familia, ha="center", va="top", fontsize=7, zorder=3)
+    for fabricante in dict.fromkeys(fabricantes.values()):
+        eixo.scatter([], [], color=CORES_FABRICANTE[fabricante], label=fabricante)
+    eixo.legend(frameon=False, fontsize=8, loc="lower left")
+    eixo.set_axis_off()
+    figura.tight_layout()
+    return figura
+
+
+def desenhar_panelas(
+    pesos: PesosArestas, familias: dict[str, str], forca: dict[str, int], semente: int
+) -> Figure:
+    """
+    :param pesos: arestas do subgrafo reduzido
+    :param familias: família de cada vértice; define a cor e o rótulo de cada grupo
+    :param forca: força de cada vértice no grafo completo, que define o tamanho do nó
+    :param semente: SEED do layout por forças
+    :return: arestas dentro da família na cor dela, entre famílias em cinza, e o nome de cada
+        família na mediana das posições dos seus produtos
+
+    Exemplo:
+        figura = desenhar_panelas(pesos_reduzidos, familias, forca, config.SEED)
+    """
+    grafo = nx.Graph()
+    grafo.add_weighted_edges_from((p, q, w) for (p, q), w in pesos.items())
+    posicoes = nx.spring_layout(grafo, weight="weight", seed=semente, iterations=300)
+    presentes = sorted(
+        {familias[v] for v in grafo},
+        key=lambda f: -sum(familias[v] == f for v in grafo),
+    )
+    escuras = [c for i, c in enumerate(plt.get_cmap("tab10").colors) if i != 7]
+    claras = [
+        c for i, c in enumerate(plt.get_cmap("tab20").colors) if i % 2 and i != 15
+    ]
+    paleta = escuras + claras
+    cor = {f: paleta[i % len(paleta)] for i, f in enumerate(presentes)}
+    figura, eixo = plt.subplots(figsize=(9, 9))
+    for p, q in grafo.edges():
+        mesma = familias[p] == familias[q]
+        eixo.plot(
+            *zip(posicoes[p], posicoes[q]),
+            color=cor[familias[p]] if mesma else "#BBBBBB",
+            alpha=0.6 if mesma else 0.35,
+            lw=0.8 if mesma else 0.4,
+            zorder=1,
+        )
+    for familia in presentes:
+        vertices = [v for v in grafo if familias[v] == familia]
+        xy = np.array([posicoes[v] for v in vertices])
+        eixo.scatter(
+            xy[:, 0],
+            xy[:, 1],
+            s=[8 + forca[v] / 60 for v in vertices],
+            color=cor[familia],
+            edgecolor="white",
+            linewidth=0.3,
+            zorder=2,
+        )
+        cx, cy = np.median(xy, axis=0)
+        eixo.text(
+            cx,
+            cy,
+            familia,
+            fontsize=8,
+            weight="bold",
+            ha="center",
+            zorder=3,
+            bbox={"fc": "white", "ec": "none", "alpha": 0.7, "pad": 1},
+        )
+    eixo.set_axis_off()
+    figura.tight_layout()
+    return figura

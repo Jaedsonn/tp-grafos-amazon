@@ -1,11 +1,14 @@
 medida,computada,metodo,justificativa
-Vértices e arestas,sim,"exato, contagem",-
-Grau mín./máx./médio,sim,"exato, código próprio",-
+Número de vértices,sim,"exato, contagem",-
+Número de arestas,sim,"exato, contagem",-
+"Grau mínimo, máximo e médio",sim,"exato, código próprio",-
 Distribuição de graus,sim,"exato, histograma e CCDF",-
 Densidade,sim,"exato, 2m/(n(n-1))",-
-Nº de componentes e tamanhos,sim,"exato, BFS próprio",no backbone antes da LCC
-Diâmetro e raio,sim,"exato, BFS própria de todos os vértices",conferido com igraph
-Comprimento médio,sim,"exato, BFS própria + amostrado (1000 origens)",conferido com igraph; a amostragem valida o protocolo da Parte III
-Clusterização média,sim,"exato, código próprio",conferido com igraph
-Triângulos,sim,"exato, código próprio",conferido com igraph
+Número de componentes conexas,sim,"exato, BFS próprio",no backbone antes da LCC
+Tamanho de cada componente,sim,"exato, BFS próprio",no backbone antes da LCC
+Diâmetro,sim,"exato, BFS própria de todos os vértices",conferido com igraph
+Raio,sim,"exato, BFS própria de todos os vértices",conferido com igraph
+Comprimento médio dos caminhos,sim,"exato, BFS própria + amostrado (1000 origens)",conferido com igraph; a amostragem valida o protocolo da Parte III
+Coeficiente de clusterização médio,sim,"exato, código próprio",conferido com igraph
+Número de triângulos,sim,"exato, código próprio",conferido com igraph
 Visualização,sim,núcleo dos 300 maiores graus,a LCC inteira é ilegível

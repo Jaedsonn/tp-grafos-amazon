@@ -345,3 +345,105 @@ def contar_arestas_entre_consoles(
         if classes[p] == CONSOLE and classes[q] == CONSOLE:
             contagem[tuple(sorted((familias[p], familias[q])))] += w
     return contagem
+
+
+_FABRICANTES = (
+    ("Sony", ("PlayStation", "Sony PSP")),
+    ("Microsoft", ("Xbox",)),
+    ("Sega", ("Sega",)),
+    ("Computador", ("PC", "Mac")),
+    ("Nintendo", ("Wii", "Nintendo", "Game Boy", "GameCube", "Super Nintendo")),
+)
+
+
+def identificar_fabricante(familia: str) -> str:
+    """
+    :param familia: família de console normalizada
+    :return: Sony, Microsoft, Nintendo, Sega, Computador ou "outras"
+
+    Exemplo:
+        >>> identificar_fabricante("Sony PSP"), identificar_fabricante("Game Boy Color"), identificar_fabricante("Atari 2600")
+        ('Sony', 'Nintendo', 'outras')
+    """
+    for fabricante, prefixos in _FABRICANTES:
+        if familia.startswith(prefixos):
+            return fabricante
+    return "outras"
+
+
+def ligar_parceiros_mais_fortes(
+    pesos: PesosArestas, rotulos: dict[str, str], incluidos: list[str], k: int
+) -> dict[tuple[str, str], float]:
+    """
+    Grafo reduzido entre rótulos: cada rótulo se liga aos k rótulos com que mais se mistura
+    acima do acaso, medido pela razão e_ab / (a_a a_b) da matriz de mistura.
+
+    :param pesos: arestas do grafo de produtos
+    :param rotulos: rótulo (família) de cada produto
+    :param incluidos: rótulos que entram no grafo reduzido
+    :param k: parceiros por rótulo
+    :return: {(a, b): razão}, com a < b
+
+    Exemplo:
+        >>> pesos = {("1", "2"): 1, ("2", "3"): 1, ("3", "4"): 1}
+        >>> ligar_parceiros_mais_fortes(pesos, {"1": "A", "2": "B", "3": "B", "4": "C"}, ["A", "B", "C"], 1)
+        {('A', 'B'): 1.5, ('B', 'C'): 1.5}
+    """
+    e, a = calcular_mistura(pesos, rotulos)
+    ligacoes: dict[tuple[str, str], float] = {}
+    for x in incluidos:
+        razoes = [(e.get((x, y), 0.0) / (a[x] * a[y]), y) for y in incluidos if y != x]
+        for razao, y in sorted(razoes, reverse=True)[:k]:
+            ligacoes[tuple(sorted((x, y)))] = razao
+    return dict(sorted(ligacoes.items()))
+
+
+def reduzir_para_panelas(
+    pesos: PesosArestas,
+    rotulos: dict[str, str],
+    incluidos: list[str],
+    por_rotulo: int,
+    k: int,
+) -> PesosArestas:
+    """
+    Subgrafo pequeno o bastante para desenhar: os ``por_rotulo`` produtos de maior força de cada
+    rótulo incluído, e, de cada um deles, só as k arestas mais pesadas dentro da seleção.
+    Nada privilegia arestas dentro do mesmo rótulo: se elas dominam o desenho, é porque
+    dominam os vizinhos mais fortes.
+
+    :param pesos: arestas do grafo de produtos
+    :param rotulos: rótulo de cada produto
+    :param incluidos: rótulos representados
+    :param por_rotulo: produtos por rótulo
+    :param k: arestas mantidas por produto
+    :return: arestas {(p, q): w} do subgrafo reduzido
+
+    Exemplo:
+        >>> pesos = {("a", "b"): 5, ("a", "c"): 1, ("b", "c"): 2}
+        >>> reduzir_para_panelas(pesos, {"a": "X", "b": "X", "c": "Y"}, ["X", "Y"], 2, 1)
+        {('a', 'b'): 5, ('b', 'c'): 2}
+    """
+    forca: Counter[str] = Counter()
+    for (p, q), w in pesos.items():
+        forca[p] += w
+        forca[q] += w
+    por_grupo = defaultdict(list)
+    for v, rotulo in rotulos.items():
+        if rotulo in incluidos:
+            por_grupo[rotulo].append(v)
+    selecionados = {
+        v
+        for grupo in por_grupo.values()
+        for v in sorted(grupo, key=lambda v: (-forca[v], v))[:por_rotulo]
+    }
+    vizinhos = defaultdict(list)
+    for (p, q), w in pesos.items():
+        if p in selecionados and q in selecionados:
+            vizinhos[p].append((w, q, (p, q)))
+            vizinhos[q].append((w, p, (p, q)))
+    mantidas = {
+        aresta
+        for lista in vizinhos.values()
+        for _, _, aresta in sorted(lista, key=lambda x: (-x[0], x[1]))[:k]
+    }
+    return {aresta: pesos[aresta] for aresta in sorted(mantidas)}
