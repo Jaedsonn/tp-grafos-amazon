@@ -206,54 +206,6 @@ def plotar_curvas_de_ataque(
     return figura
 
 
-def plotar_concentracao_por_classe(
-    participacao: dict[str, tuple[float, float]],
-    razoes: dict[tuple[str, str], float],
-    classes: list[str],
-) -> Figure:
-    """
-    :param participacao: classe -> (fração dos vértices, fração das pontas de aresta)
-    :param razoes: (classe a, classe b) -> e_ab / (a_a a_b), observado sobre o esperado
-    :param classes: ordem das classes nos dois painéis
-    :return: barras de participação (esquerda) e mapa de calor da mistura em escala log (direita)
-
-    Exemplo:
-        figura = plotar_concentracao_por_classe({"jogo": (0.5, 0.6)}, {("jogo", "jogo"): 1.3}, ["jogo"])
-    """
-    figura, (barras, calor) = plt.subplots(1, 2, figsize=(10, 4))
-    posicoes = np.arange(len(classes))
-    vertices = [participacao[c][0] for c in classes]
-    pontas = [participacao[c][1] for c in classes]
-    barras.bar(posicoes - 0.2, vertices, 0.4, label="vértices", color=COR_OUTRAS)
-    barras.bar(posicoes + 0.2, pontas, 0.4, label="pontas de aresta", color="#2F6DB5")
-    barras.set_xticks(posicoes, classes, rotation=30, ha="right", fontsize=8)
-    barras.set(ylabel="fração da LCC")
-    barras.grid(True, axis="y", alpha=0.3)
-    barras.legend(fontsize=8, frameon=False)
-    matriz = np.array([[razoes.get((a, b), np.nan) for b in classes] for a in classes])
-    imagem = calor.imshow(
-        np.log2(matriz), cmap="RdBu_r", vmin=-3, vmax=3, interpolation="nearest"
-    )
-    for i in range(len(classes)):
-        for j in range(len(classes)):
-            escuro = abs(np.log2(matriz[i, j])) > 2
-            calor.text(
-                j,
-                i,
-                f"{matriz[i, j]:.2f}",
-                ha="center",
-                va="center",
-                fontsize=7,
-                color="white" if escuro else "black",
-            )
-    calor.set_xticks(posicoes, classes, rotation=30, ha="right", fontsize=8)
-    calor.set_yticks(posicoes, classes, fontsize=8)
-    barra_cor = figura.colorbar(imagem, ax=calor, fraction=0.046)
-    barra_cor.set_label("log₂(observado / esperado)", fontsize=8)
-    figura.tight_layout()
-    return figura
-
-
 def plotar_ccdf_modelos(curvas: dict[str, dict[int, float]]) -> Figure:
     """
     :param curvas: nome do grafo -> CCDF dos graus, P(K >= k) por k

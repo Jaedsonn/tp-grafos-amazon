@@ -8,7 +8,7 @@ Número de componentes conexas,sim,"exato, BFS próprio",no backbone antes da LC
 Tamanho de cada componente,sim,"exato, BFS próprio",no backbone antes da LCC
 Diâmetro,sim,"exato, BFS própria de todos os vértices",conferido com igraph
 Raio,sim,"exato, BFS própria de todos os vértices",conferido com igraph
-Comprimento médio dos caminhos,sim,"exato, BFS própria + amostrado (1000 origens)",conferido com igraph; a amostragem valida o protocolo da Parte III
+Comprimento médio dos caminhos,sim,"exato, BFS própria de todos os vértices",conferido com igraph
 Coeficiente de clusterização médio,sim,"exato, código próprio",conferido com igraph
 Número de triângulos,sim,"exato, código próprio",conferido com igraph
 Visualização,sim,núcleo dos 300 maiores graus,a LCC inteira é ilegível

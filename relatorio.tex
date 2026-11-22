@@ -88,6 +88,14 @@ Logo,
 A regra usa 129 quando o resto é zero. O índice G118 corresponde a \emph{web-Amazon}
 (\emph{Amazon reviews}) no catálogo da disciplina.
 
+\paragraph{O grafo original.}
+O \emph{web-Amazon} reúne 34\,686\,770 avaliações de 6\,643\,669
+usuários sobre 2\,441\,053 produtos, de junho de 1995 a março de 2013,
+distribuídas em arquivos por categoria, entre eles \emph{Video Games}
+\cite{snapamazon}. Cada avaliação liga um usuário a um produto e traz
+nota, texto e instante. Os dados formam, portanto, um grafo bipartido
+usuário--produto, temporal e sem arestas diretas entre produtos.
+
 \paragraph{Troca da base de dados.}
 O grafo analisado não vem do arquivo listado na planilha da
 disciplina. Os links de dados da página \emph{web-Amazon} do SNAP
@@ -283,9 +291,7 @@ Calculamos tudo na LCC, que é conexa por construção (T6); as
 componentes menores aparecem só na contagem de componentes. Diâmetro,
 raio e caminho médio são exatos: uma BFS a partir de cada um dos
 21\,284 vértices, sobre listas de inteiros e dividida entre os núcleos
-do processador, leva cerca de 3 minutos. Para mostrar que uma estimativa
-barata bastaria, também estimamos o caminho médio com BFS a partir de
-1\,000 origens sorteadas e IC de 95\%.
+do processador, leva cerca de 3 minutos.
 
 \paragraph{Medição de tempo.}
 Cada configuração tem dois aquecimentos descartados e 30 repetições
@@ -321,8 +327,8 @@ comparações por \(\sigma=(C/C_{\mathrm{ref}})/(L/L_{\mathrm{ref}})\).
 Seguindo o Apêndice B e Clauset et al.~\cite{clauset2009}, estimamos \(\gamma\)
 por máxima verossimilhança discreta na cauda \(k\geq k_{\min}\),
 escolhemos \(k_{\min}\) pela menor distância de Kolmogorov--Smirnov e
-comparamos a lei de potência com a lognormal e com a lei de potência
-truncada pela razão de verossimilhanças. Uma reta em escala log-log
+comparamos a lei de potência com a lognormal pela razão de
+verossimilhanças. Uma reta em escala log-log
 não basta como evidência.
 
 \paragraph{Robustez.}
@@ -406,9 +412,7 @@ Grau mínimo / máximo / médio & 1 / 1\,274 / 30,1393 \\
 Força média & 100,0335 \\
 Densidade & \(1{,}4161\times10^{-3}\) \\
 Diâmetro / raio (saltos) & 13 / 7 \\
-Comprimento médio exato (saltos) & 3,7131 \\
-Comprimento médio estimado & 3,6929 \\
-IC 95\% da estimativa & [3,6539; 3,7318] \\
+Comprimento médio (saltos) & 3,7131 \\
 Clusterização média & 0,32453 \\
 Triângulos & 4\,389\,728 \\
 \bottomrule
@@ -419,9 +423,8 @@ Apenas 0,142\% dos pares possíveis são vizinhos, mas a distância
 média na LCC é de 3,71 saltos. Assim, poucos passos bastam para
 ligar produtos que não têm uma aresta direta. Cada aresta retida
 tem, em média, 3,32 usuários em comum. O diâmetro é a maior distância mínima, 13. O raio é 7, a
-menor distância máxima a partir de um vértice. A estimativa por BFS
-a partir de mil origens inclui o valor exato no seu intervalo, como
-mostra a Tabela~\ref{tab:estrutural}.
+menor distância máxima a partir de um vértice
+(Tabela~\ref{tab:estrutural}).
 
 \begin{table}[tbp]
 \centering
@@ -460,7 +463,7 @@ Número de componentes & Sim & BFS no \emph{backbone} \\
 Tamanho de cada componente & Sim & BFS no \emph{backbone} \\
 Diâmetro & Sim & Exato, BFS própria de cada vértice \\
 Raio & Sim & Exato, BFS própria de cada vértice \\
-Comprimento médio dos caminhos & Sim & Exato (BFS própria) e estimado \\
+Comprimento médio dos caminhos & Sim & Exato, BFS própria de cada vértice \\
 Clusterização média & Sim & Código próprio, conferido com igraph \\
 Número de triângulos & Sim & Código próprio, conferido com igraph \\
 Visualização & Sim & Subgrafo induzido pelos 300 maiores graus \\
@@ -573,6 +576,9 @@ O protocolo de medição está na Seção~\ref{sec:metodologia}. Usamos \(n=1\,0
 e a LCC para os sete primeiros algoritmos da Tabela~\ref{tab:tempos}.
 Bellman--Ford foi limitado a 500, 1\,000, 2\,000 e 4\,000
 vértices. Floyd--Warshall foi medido com 100, 200, 400 e 800.
+A Tabela~\ref{tab:tempos} mostra só a maior entrada; a média, o
+desvio padrão e o IC de 95\% das 43 configurações medidas estão em
+\texttt{results/parte2\_tempos.csv}.
 
 Na LCC, Kruskal foi 2,51 vezes mais rápido que Prim nesta
 execução, embora ambos tenham a mesma ordem teórica para grafos
@@ -581,10 +587,7 @@ simples. A Figura~\ref{fig:lineares} mostra inclinações entre
 Dijkstra, Prim e Kruskal têm inclinações de 1,07, 1,15 e 0,93 em
 relação a \(m\log n\), compatíveis com a ordem teórica. Prim é o mais
 lento e Kruskal o mais rápido em todos os tamanhos medidos, então a
-diferença entre os dois está na constante, não na ordem. Em um teste separado na
-mesma LCC, retirar a ordenação dos vizinhos em Euler reduziu a
-mediana de 118,01 para 76,33~ms, com 30 chamadas por versão e
-o mesmo diagnóstico.
+diferença entre os dois está na constante, não na ordem.
 
 Na Figura~\ref{fig:bf-floyd}, Bellman--Ford obteve inclinação
 0,65 em relação a \(nm\). A parada antecipada
@@ -622,7 +625,8 @@ distâncias médias próximas às de um grafo aleatório
 cálculo de \(C\), a geração de Erdős--Rényi \(G(n,m)\) e a
 estimativa de \(L\) por BFS com 100 origens sorteadas por grafo.
 Esse protocolo é comum a todos os grafos desta comparação.
-A estimativa na rede real, 3,7779, usa menos origens que a da Parte I.
+Na rede real, essa estimativa dá 3,7779, contra 3,7131 do valor exato
+da Parte I.
 
 Comparamos a LCC real a dez grafos Erdős--Rényi com os mesmos
 \(n\) e \(m\) e às aproximações
@@ -704,10 +708,7 @@ Na Figura~\ref{fig:potencia}, a cauda decai lentamente e apresenta
 desvios da reta ajustada. A comparação por razão logarítmica de
 verossimilhanças favoreceu a lognormal em relação à lei de
 potência pura (\(R=-102{,}1\), \(p=2{,}2\times10^{-20}\)).
-A lei de potência truncada também obteve maior verossimilhança
-(\(R=-120{,}9\)), mas seu ajuste emitiu um aviso de parâmetro
-próximo ao limite numérico. A comparação com a lognormal sustenta a
-conclusão principal: há uma cauda pesada, e a lei de potência pura
+A conclusão é que há uma cauda pesada, e a lei de potência pura
 é insuficiente para descrevê-la neste conjunto de dados.
 
 \subsection{Robustez a falhas e ataques}
@@ -821,8 +822,7 @@ Classe & 6 & 63,0\% & 37,9\% & 0,40 & 36,0\% \\
 
 \paragraph{Os consoles concentram ligações.}
 Os 290 consoles são 1,4\% dos produtos da LCC, mas têm 2,9\% das
-pontas de aresta. O grau médio deles é 64, contra 30 na rede
-(Figura~\ref{fig:consoles}, à esquerda). A força é desigual também
+pontas de aresta. O grau médio deles é 64, contra 30 na rede. A força é desigual também
 entre eles: o Gini é 0,76, e os cinco mais fortes (PlayStation 4
 500GB, Xbox One com Kinect, o pacote do Xbox 360 com Gears of War 3,
 o Nintendo DS Lite e o pacote do Xbox One com Assassin's Creed Unity)
@@ -830,7 +830,7 @@ somam 24,5\% da força dos consoles. A categoria \emph{Consoles} da
 Amazon inclui pacotes com jogo.
 
 \paragraph{Hardware se liga a hardware.}
-A matriz de mistura (Figura~\ref{fig:consoles}, à direita) mostra
+A matriz de mistura entre as classes mostra
 que console--console ocorre 2,8 vezes mais que ao acaso e
 acessório--acessório 2,7 vezes. Console--acessório fica em 1,2, e
 console--jogo em 1,0, exatamente o acaso. Quem avalia um console
@@ -838,10 +838,6 @@ avalia outros aparelhos e periféricos, mas não mais jogos do que o
 esperado. Os jogos retrô formam o grupo mais fechado (5,3 vezes), pois
 pertencem a gerações que quase não se misturam com as atuais.
 
-\figura{parte3_consoles}
-  {Participação de cada classe de produto nos vértices e nas pontas de aresta (esquerda) e razão entre a mistura observada e a esperada ao acaso, em escala log (direita).}
-  {Consoles têm o dobro das pontas que sua fração de vértices prevê. A diagonal da matriz é vermelha: cada classe se liga mais a si mesma.}
-  {fig:consoles}
 
 \paragraph{Rivalidade e troca de geração.}
 Do peso das arestas console--console, 54\% fica na mesma família,
@@ -915,7 +911,7 @@ Figura~\ref{fig:modelos}).
 
 \begin{table}[tbp]
 \centering
-\caption{Grafo real e modelos clássicos (média de 3 réplicas). \(L\) usa 100 origens; \(\hat\gamma\) é o MLE da cauda; o nulo bipartido vem da Q1.}
+\caption{Grafo real e modelos clássicos (média de 3 réplicas). \(L\) usa 100 origens; \(\hat\gamma\) é o MLE da cauda; o nulo bipartido vem da Tabela~\ref{tab:pequeno-mundo}.}
 \label{tab:modelos}
 \small
 \setlength{\tabcolsep}{3pt}

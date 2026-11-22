@@ -91,27 +91,22 @@ class ComparacaoDistribuicoes:
     k_min: int
     razao_lognormal: float
     p_lognormal: float
-    razao_truncada: float
-    p_truncada: float
 
 
 def comparar_distribuicoes(graus: list[int]) -> ComparacaoDistribuicoes:
     """
     :param graus: grau de cada vértice
-    :return: γ e k_min do powerlaw, e R, p contra lognormal e lei de potência truncada;
-        R < 0 com p < 0,1 significa que a alternativa explica melhor a cauda
+    :return: γ e k_min do powerlaw, e R, p contra a lognormal;
+        R < 0 com p < 0,1 significa que a lognormal explica melhor a cauda
 
     Exemplo:
         c = comparar_distribuicoes(list(graus.values()))
     """
     ajuste = powerlaw.Fit(graus, discrete=True, verbose=False)
     r_log, p_log = ajuste.distribution_compare("power_law", "lognormal")
-    r_trunc, p_trunc = ajuste.distribution_compare("power_law", "truncated_power_law")
     return ComparacaoDistribuicoes(
         float(ajuste.power_law.alpha),
         int(ajuste.power_law.xmin),
         float(r_log),
         float(p_log),
-        float(r_trunc),
-        float(p_trunc),
     )
