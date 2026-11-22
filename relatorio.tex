@@ -232,8 +232,9 @@ deste trabalho se referem à maior componente com peso mínimo dois.
 Todo o processamento foi feito em Python 3.11, com as versões das
 dependências fixadas em \texttt{uv.lock}. O pré-processamento
 (\texttt{src.etl.pipeline}) gera os arquivos de
-\texttt{data/processado/}, e quatro notebooks executam as Partes I, II
-e III e a análise de consoles, nessa ordem. Todos os sorteios usam a
+\texttt{data/processado/}, e cinco notebooks executam as Partes I, II
+e III, a análise de consoles e a comparação com modelos clássicos,
+nessa ordem; \texttt{scripts/run\_all.py} roda tudo com um comando. Todos os sorteios usam a
 semente 42, então a reexecução reproduz as mesmas tabelas e figuras;
 só os tempos variam. Os tempos foram medidos em Linux, com Intel Core 7
 150U, cerca de 30 GB de RAM e Python 3.11.15. O repositório com
@@ -241,32 +242,40 @@ código, dados tratados e instruções está descrito na
 Seção~\ref{sec:disponibilidade}.
 
 \paragraph{Representação e implementação.}
+\sloppy
 O grafo é uma lista de adjacência em dicionários, e os pesos ficam
 num mapa à parte. São implementações próprias: BFS, DFS, verificação
 de Eulerianidade, Dijkstra com fila de prioridade, Bellman--Ford com
 parada antecipada, Floyd--Warshall vetorizado por intermediário,
-Tarjan para pontes e articulações (DFS iterativa), Prim, Kruskal com
-conjuntos disjuntos, a contagem de triângulos, a clusterização, o
-gerador \(G(n,m)\), o nulo bipartido, o ajuste de lei de potência, as
+Tarjan para componentes fortemente conexas e para pontes e
+articulações (DFS iterativa), Prim, Kruskal com conjuntos disjuntos,
+diâmetro, raio e caminho médio exatos, a contagem de triângulos, a
+clusterização, os geradores de Erdős--Rényi, Barabási--Albert e
+Watts--Strogatz, o nulo bipartido, o ajuste de lei de potência, as
 remoções da robustez e as medidas de mistura por rótulo. Usamos
-bibliotecas em três papéis, sempre declarados: o igraph calcula
-diâmetro, raio, caminho médio exato e intermediação exata, que exigem
-uma busca a partir de cada vértice; o NetworkX e o igraph servem de
-referência nos testes; o pacote \texttt{powerlaw} confere o ajuste
-próprio e compara distribuições candidatas.
+bibliotecas em três papéis, sempre declarados: o igraph calcula a
+intermediação exata dos ataques; o NetworkX e o igraph servem de
+referência nos testes e conferem os valores exatos; o pacote
+\texttt{powerlaw} confere o ajuste próprio e compara distribuições
+candidatas.
 
+\fussy
 \paragraph{Validação.}
 Cada função tem exemplos executáveis, e a suíte
-(\texttt{uv run pytest}) roda 97 verificações. No grafo real,
-conferimos a clusterização e os triângulos com o igraph, as
-distâncias da BFS com as do igraph, o custo das árvores geradoras com
+(\texttt{uv run pytest}) roda 163 verificações, entre elas os testes
+de \texttt{tests/}, que comparam Tarjan, as distâncias exatas e os
+geradores com o NetworkX e com propriedades conhecidas. No grafo real,
+conferimos a clusterização e os triângulos com o igraph, o diâmetro,
+o raio e o caminho médio com o igraph, o custo das árvores geradoras com
 o NetworkX e a igualdade das distâncias de Dijkstra, Bellman--Ford e
 Floyd--Warshall nos mesmos subgrafos.
 
 \paragraph{Medidas estruturais.}
 Calculamos tudo na LCC, que é conexa por construção (T6); as
 componentes menores aparecem só na contagem de componentes. Diâmetro,
-raio e caminho médio são exatos. Para mostrar que uma estimativa
+raio e caminho médio são exatos: uma BFS a partir de cada um dos
+21\,284 vértices, sobre listas de inteiros e dividida entre os núcleos
+do processador, leva cerca de 3 minutos. Para mostrar que uma estimativa
 barata bastaria, também estimamos o caminho médio com BFS a partir de
 1\,000 origens sorteadas e IC de 95\%.
 
@@ -339,22 +348,27 @@ rótulo.
 \section{Disponibilidade de código e dados}
 \label{sec:disponibilidade}
 
+{\sloppy
 Código, dados tratados e instruções de execução estão em
 \url{https://github.com/Jaedsonn/tp-grafos-amazon}. O repositório
 contém:
 
 \begin{itemize}
   \item \texttt{src/}: o pré-processamento T1--T7 e as implementações
-  próprias dos algoritmos e das medidas, com 97 verificações
-  automáticas (\texttt{uv run pytest});
-  \item \texttt{notebooks/}: os quatro notebooks das Partes I, II e III
-  e da análise de consoles, executados nessa ordem;
+  próprias dos algoritmos e das medidas, com exemplos executáveis;
+  \item \texttt{tests/}: testes de integração contra o NetworkX; a
+  suíte completa (\texttt{uv run pytest}) tem 163 verificações;
+  \item \texttt{notebooks/}: os cinco notebooks das Partes I, II e
+  III, da análise de consoles e dos modelos clássicos;
+  \item \texttt{scripts/run\_all.py}: executa testes,
+  pré-processamento e notebooks em sequência;
   \item \texttt{data/processado/}: o funil de tratamento, os tamanhos
   das componentes, o catálogo dos 21\,284 produtos da LCC e suas
   320\,742 arestas ponderadas;
   \item \texttt{results/} e \texttt{imagens/}: as tabelas e as figuras
   deste relatório.
 \end{itemize}
+\par}
 
 O \texttt{README.md} explica como preparar o ambiente
 (\texttt{uv sync}), onde obter os dados brutos da coleção de 2018,
@@ -434,16 +448,18 @@ Medida & Feita? & Método \\
 Vértices, arestas, graus e densidade & Sim & Contagens e fórmulas exatas \\
 Distribuição de graus & Sim & Histograma e CCDF \\
 Componentes e tamanhos & Sim & BFS no \emph{backbone} \\
-Diâmetro e raio & Sim & Exatos, via igraph \\
-Comprimento médio & Sim & Exato, via igraph, e estimado por BFS \\
+Diâmetro e raio & Sim & Exatos, BFS própria de cada vértice \\
+Comprimento médio & Sim & Exato (BFS própria) e estimado \\
 Clusterização e triângulos & Sim & Código próprio, conferido com igraph \\
 Visualização & Sim & Subgrafo induzido pelos 300 maiores graus \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Como resume a Tabela~\ref{tab:status}, usamos o igraph nos cálculos
-exatos que exigem percorrer a LCC a partir de cada origem. A
+Como resume a Tabela~\ref{tab:status}, todas as medidas foram
+calculadas com código próprio, e o igraph serviu só de conferência:
+diâmetro, raio, caminho médio, triângulos e clusterização coincidiram.
+A
 Figura~\ref{fig:graus} mostra a frequência de cada grau e sua
 distribuição acumulada complementar, \(\Pr(K\geq k)\). A maior
 parte dos produtos tem poucos vizinhos, enquanto alguns chegam a
@@ -489,8 +505,13 @@ o menor tempo de descoberta alcançável. Encontramos 4\,248
 pontes, das quais 3\,951 ligam folhas e 297 ficam no interior da
 rede, além de 3\,032 articulações. A maior parte das pontes
 desconecta uma folha, o que ajuda a explicar a frequência de isolados
-sob ataque. Como a rede é não direcionada, a noção de componentes
-fortemente conexas coincide com a de componentes conexas.
+sob ataque. Também implementamos o Tarjan original, para componentes
+fortemente conexas (CFC). A coavaliação é simétrica, então o dígrafo
+correspondente tem os arcos \(p\to q\) e \(q\to p\) de cada aresta, e
+cada CFC deve coincidir com uma componente conexa. Nos 641\,484 arcos
+da LCC, o algoritmo encontrou uma única CFC, com os 21\,284 vértices,
+a mesma partição do NetworkX. Uma orientação com significado, como
+``avaliado antes'', exigiria os instantes descartados na construção.
 
 \begin{table*}[tbp]
 \centering
@@ -823,18 +844,54 @@ elos entre as famílias, e os nichos se soltam.
 
 \subsection{Comparação com modelos clássicos}
 
-Nenhum dos três modelos descreve a rede sozinho. Erdős--Rényi
-(\(C=0{,}0014\), graus aproximadamente Poisson) fica 229 vezes abaixo
-da clusterização observada e não explica o grau máximo de 1\,274,
-muito acima do que uma distribuição de média 30 permite.
-Barabási--Albert prevê \(\gamma=3\), e o valor estimado foi
-\(\hat\gamma=2{,}11\), com a lognormal ainda preferida à lei pura.
-Watts--Strogatz reproduz agrupamento alto com caminhos curtos, mas
-parte de uma rede quase regular e não gera hubs. É, ainda assim, o
-mais próximo no par \((C,L)\). O que reproduz o grafo é o mecanismo
-da construção: o nulo bipartido recupera o agrupamento (0,359 contra
-0,325), embora subestime o caminho médio (2,89 contra 3,78) por não
-conter a estrutura de famílias de console.
+Geramos com código próprio três réplicas de cada modelo clássico com
+o mesmo número de vértices e quase o mesmo número de arestas da LCC:
+Erdős--Rényi \(G(n,m)\); Barabási--Albert com \(m_0=15\) arestas por
+vértice novo, a razão \(m/n\) arredondada; e Watts--Strogatz com
+\(k=30\), o grau médio arredondado para par, e \(p=0{,}1\). Medimos
+neles as mesmas grandezas do grafo real (Tabela~\ref{tab:modelos} e
+Figura~\ref{fig:modelos}).
+
+\begin{table}[tbp]
+\centering
+\caption{Grafo real e modelos clássicos (média de 3 réplicas). \(L\) usa 100 origens; \(\hat\gamma\) é o MLE da cauda; o nulo bipartido vem da Q1.}
+\label{tab:modelos}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Grafo & \(C\) & \(L\) & \(k_{\max}\) & Grau 1 & \(\hat\gamma\) \\
+\midrule
+Real & 0,325 & 3,78 & 1\,274 & 18,6\% & 2,11 \\
+Erdős--Rényi & 0,001 & 3,24 & 55 & 0\% & -- \\
+Barabási--Albert & 0,009 & 2,99 & 863 & 0\% & 2,93 \\
+Watts--Strogatz & 0,530 & 4,09 & 38 & 0\% & -- \\
+Nulo bipartido & 0,359 & 2,89 & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\figura{parte3_modelos_ccdf}
+  {Distribuição acumulada complementar dos graus do grafo real e de uma réplica de cada modelo clássico.}
+  {A curva real decai lentamente até grau 1274; Barabási-Albert tem cauda mais curta; Erdős-Rényi e Watts-Strogatz caem abruptamente perto da média.}
+  {fig:modelos}
+
+Nenhum dos três modelos descreve a rede sozinho. Erdős--Rényi fica
+230 vezes abaixo da clusterização observada e tem grau máximo 55, sem
+cauda. Watts--Strogatz reproduz o agrupamento, até com sobra
+(\(C=0{,}53\)), mas seus graus ficam perto da média (máximo 38) e seus
+caminhos são mais longos que os reais. Barabási--Albert é o mais
+próximo na distribuição de graus: gera hubs e uma lei de potência
+quase perfeita (\(\hat\gamma=2{,}93\), perto do 3 teórico). Ainda
+assim, sua clusterização é 38 vezes menor, ele não tem vértices de
+grau 1, contra 18,6\% no grafo real, e sua cauda é mais leve. Nos
+modelos sem cauda pesada, o ajuste de \(\hat\gamma\) não tem sentido e
+foi omitido. O único que reproduz o agrupamento é o nulo bipartido
+(0,359 contra 0,325), porque usa o mesmo mecanismo da rede: cada
+usuário vira um clique. O grafo combina, portanto, a cauda pesada do
+Barabási--Albert com um agrupamento que vem da projeção, e não de um
+anel religado. O caminho médio real, mais longo que o do nulo, é o
+que resta de estrutura própria: a segregação por família de console.
 
 \section{Discussão crítica}
 
@@ -939,7 +996,9 @@ mostrou o nulo bipartido, e não deve ser lido como propriedade da
 rede. O achado mais forte é a organização por família de console:
 55,2\% das arestas ficam dentro da família, contra 9,7\% ao acaso,
 e os consoles concentram ligações com outros aparelhos, inclusive de
-marcas rivais.
+marcas rivais. Entre os modelos clássicos, nenhum reproduz a rede:
+Barabási--Albert acerta a cauda, e só a projeção de um bipartido
+aleatório acerta o agrupamento.
 
 Como próximos passos, propomos repetir as medidas nos limiares
 alternativos, filtrar compras verificadas, separar janelas de tempo
