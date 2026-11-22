@@ -38,8 +38,10 @@ obtida ao projetar um bipartido aleatorizado. A distribuição de graus
 tem cauda pesada, com ajuste lognormal superior ao da lei de potência
 pura. Ao remover 5\% dos vértices ao acaso, 98,83\% dos remanescentes
 continuaram na maior componente, contra 86,47\% com remoção por
-intermediação. Também encontramos 52,4\% das arestas entre produtos
-com o mesmo rótulo de plataforma, ante 11,5\% na referência aleatória.
+intermediação. A rede reconstrói o mercado de consoles: 55,2\% das
+arestas ligam produtos da mesma família de console, ante 9,7\% ao
+acaso, e os consoles, com 1,4\% dos produtos, têm o dobro das ligações
+que sua fração prevê, sobretudo com outros consoles e acessórios.
 \end{abstract}
 
 \keywords{teoria dos grafos, Amazon Reviews, coavaliação, pequeno mundo, robustez}
@@ -674,29 +676,91 @@ de 22,5\%, o próximo ponto medido. O desempenho relativo dos
 rankings, ambos calculados antes das remoções, depende da fração
 retirada.
 
-\subsection{Plataformas e produtos centrais}
+\subsection{Descoberta mais interessante: o mapa dos consoles}
 
-A plataforma aparece na topologia mesmo tendo sido usada apenas
-para rotular produtos. Na LCC, 52,4\% das arestas ligam produtos
-com o mesmo rótulo. Se as pontas forem ligadas ao acaso mantendo
-a proporção de cada categoria entre elas, a fração esperada é
-\(\sum_a[s_a/(2m)]^2=11{,}5\%\), em que \(s_a\) é o
-número de pontas com rótulo \(a\). A proporção observada é 4,5
-vezes a esperada nessa referência.
+A descoberta mais interessante é que a rede reconstrói o mercado de
+consoles sem nunca ter visto um rótulo. A plataforma e o tipo não
+entram na construção do grafo, mas organizam as suas arestas. Os
+números desta seção vêm do notebook \texttt{04\_consoles}.
 
-O controle sem fio do Xbox 360 tem o maior grau, com 1\,274
-vizinhos, mas fica em quarto lugar em intermediação. O Wii tem
-1\,210 vizinhos e lidera em intermediação. O jogo
-\emph{Big Kahuna Reef} fica em segundo lugar nesse critério e
-fora dos 12 primeiros por grau. Assim, ter muitos vizinhos e
-participar de muitos caminhos mínimos são papéis diferentes na rede.
+\paragraph{Homofilia por família.}
+Com o rótulo bruto de plataforma, 52,4\% das arestas ligam produtos
+da mesma plataforma, contra 11,5\% esperados se as pontas se ligassem
+ao acaso. Com a família de console normalizada, a fração sobe para
+55,2\%, contra 9,7\% esperados (5,7 vezes), e a assortatividade passa
+de 0,46 para 0,50 (0,59 com pesos). Nas 1\,000 permutações de rótulos,
+a fração nunca passou de 11,6\% (\(p<0{,}001\)). A Tabela~\ref{tab:homofilia}
+resume as três rotulações; nela, ``Rót.'' é o número de rótulos
+distintos e ``Perm.'' é o maior valor entre as permutações.
 
-As remoções mostram o efeito desses papéis na conectividade. O
-ataque por intermediação separou um grupo de seis produtos
-rotulados como Xbox 360. O ataque por grau separou um grupo de
-dez produtos sob o rótulo \emph{Retro Gaming \& Microconsoles}.
-Esses casos ilustram como grupos de produtos com o mesmo rótulo
-podem ficar isolados quando vértices centrais são removidos.
+\begin{table}[tbp]
+\centering
+\caption{Arestas com as duas pontas no mesmo rótulo: observado, esperado pela mistura ao acaso (\(\sum_a a_a^2\)), assortatividade \(r\) e máximo de 1\,000 permutações.}
+\label{tab:homofilia}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Rótulo & Rót. & Obs. & Esp. & \(r\) & Perm. \\
+\midrule
+Plataforma bruta & 18 & 52,4\% & 11,5\% & 0,46 & 16,4\% \\
+Família & 40 & 55,2\% & 9,7\% & 0,50 & 11,6\% \\
+Classe & 6 & 63,0\% & 37,9\% & 0,40 & 36,0\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Os consoles concentram ligações.}
+Os 290 consoles são 1,4\% dos produtos da LCC, mas têm 2,9\% das
+pontas de aresta. O grau médio deles é 64, contra 30 na rede
+(Figura~\ref{fig:consoles}, à esquerda). A força é desigual também
+entre eles: o Gini é 0,76, e os cinco mais fortes (PlayStation 4
+500GB, Xbox One com Kinect, o pacote do Xbox 360 com Gears of War 3,
+o Nintendo DS Lite e o pacote do Xbox One com Assassin's Creed Unity)
+somam 24,5\% da força dos consoles. A categoria \emph{Consoles} da
+Amazon inclui pacotes com jogo.
+
+\paragraph{Hardware se liga a hardware.}
+A matriz de mistura (Figura~\ref{fig:consoles}, à direita) mostra
+que console--console ocorre 2,8 vezes mais que ao acaso e
+acessório--acessório 2,7 vezes. Console--acessório fica em 1,2, e
+console--jogo em 1,0, exatamente o acaso. Quem avalia um console
+avalia outros aparelhos e periféricos, mas não mais jogos do que o
+esperado. Os jogos retrô formam o grupo mais fechado (5,3 vezes), pois
+pertencem a gerações que quase não se misturam com as atuais.
+
+\figura{parte3_consoles}
+  {Participação de cada classe de produto nos vértices e nas pontas de aresta (esquerda) e razão entre a mistura observada e a esperada ao acaso, em escala log (direita).}
+  {Consoles têm o dobro das pontas que sua fração de vértices prevê. A diagonal da matriz é vermelha: cada classe se liga mais a si mesma.}
+  {fig:consoles}
+
+\paragraph{Rivalidade e troca de geração.}
+Do peso das arestas console--console, 54\% fica na mesma família,
+entre modelos e pacotes do mesmo aparelho. Os outros 46\% ligam
+famílias diferentes, ou seja, usuários com mais de um console. Os
+maiores pares cruzados são PlayStation 4 com Xbox One (134), os rivais
+da mesma geração, e Xbox 360 com Xbox One (119), a troca de geração na
+mesma marca. Em seguida vêm Nintendo DS com PSP (68), os portáteis
+rivais.
+
+\paragraph{Os consoles não são os hubs.}
+Nenhum console está entre os 20 maiores graus. Eles são 3,7\% do topo
+\(r\) por grau e 2,4\% por intermediação: mais que sua fração na rede,
+mas pouco. O maior grau é do controle sem fio do Xbox 360 (1\,274
+vizinhos), um acessório, que fica em quarto lugar em intermediação. A
+maior ponte é o próprio Wii (1\,210 vizinhos), mas ele está sem tipo
+nos metadados e cai em ``sem rótulo''; por isso a classe console é um
+limite inferior. O jogo \emph{Big Kahuna Reef} é a segunda maior
+ponte e fica fora dos 12 primeiros por grau: um título casual de PC
+que liga o público de família ao resto do catálogo. Ter muitos
+vizinhos e participar de muitos caminhos mínimos são papéis
+diferentes.
+
+\paragraph{O ataque solta ilhas de plataforma.}
+Os grupos que se separam da maior componente nos ataques são quase
+homogêneos: seis produtos de Xbox 360 no ataque por intermediação e
+dez produtos retrô no ataque por grau. Remover as pontes desfaz os
+elos entre as famílias, e os nichos se soltam.
 
 \subsection{Comparação com modelos clássicos}
 
