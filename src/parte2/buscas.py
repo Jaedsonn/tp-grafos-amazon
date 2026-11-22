@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.comum.grafo import visitar_em_largura
+from src.comum.grafo import distancias_em_largura
 from src.comum.tipos import Adjacencia, ArestaJogos
 
 
@@ -54,14 +54,22 @@ def diagnosticar_euler(adjacencia: Adjacencia) -> Eulerianidade:
     :param adjacencia: grafo não dirigido, não vazio
     :return: Eulerianidade com conexidade e contagem de vértices de grau ímpar
 
+    A BFS percorre os vizinhos sem ordená-los. O custo é O(n + m).
+
     Exemplo:
         >>> diagnosticar_euler({"1": {"2", "3"}, "2": {"1", "3"}, "3": {"1", "2"}}).tem_circuito
         True
+        >>> aberto = diagnosticar_euler({"1": {"2"}, "2": {"1", "3"}, "3": {"2"}})
+        >>> aberto.tem_circuito, aberto.tem_caminho
+        (False, True)
+        >>> desconexo = diagnosticar_euler({"1": {"2"}, "2": {"1"}, "3": {"4"}, "4": {"3"}})
+        >>> desconexo.conexo, desconexo.tem_circuito, desconexo.tem_caminho
+        (False, False, False)
     """
     if not adjacencia:
         raise ValueError("grafo vazio; esperado ao menos um vértice")
     origem = next(iter(adjacencia))
-    conexo = len(visitar_em_largura(adjacencia, origem)) == len(adjacencia)
+    conexo = len(distancias_em_largura(adjacencia, origem)) == len(adjacencia)
     impares = sum(1 for vizinhos in adjacencia.values() if len(vizinhos) % 2 == 1)
     return Eulerianidade(
         conexo, impares, conexo and impares == 0, conexo and impares == 2
