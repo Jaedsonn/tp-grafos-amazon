@@ -1,1 +1,5 @@
 /data/raw/*
+*.md
+.venv/
+__pycache__/
+.pytest_cache/
