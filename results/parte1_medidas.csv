@@ -1,0 +1,16 @@
+medida,valor
+número de vértices (LCC),21284
+número de arestas (LCC),320742
+grau mínimo,1
+grau máximo,1274
+grau médio,30.1393
+força média,100.0335
+densidade,1.4161e-03
+número de componentes (backbone),14976
+tamanho da LCC,21284
+diâmetro,13
+raio,7
+caminho médio L (exato),3.7131
+caminho médio L (1000 origens),"3.6929 [3.6539, 3.7318]"
+clusterização média,0.32453
+triângulos,4389728
