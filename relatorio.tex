@@ -185,11 +185,6 @@ coavaliações da categoria. Título, plataforma e tipo foram usados
 para descrever os produtos. A construção do grafo dependeu dos pares
 usuário--produto.
 
-Usamos Python para as análises e a semente 42 nos sorteios.
-Os scripts, os notebooks e o README com as instruções estão
-no repositório do trabalho.
-\url{https://github.com/Jaedsonn/tp-grafos-amazon}.
-
 \subsection{Sensibilidade ao limiar de coavaliação}
 
 Repetimos a poda com pesos mínimos 1, 2 e 3, usando os mesmos
@@ -202,6 +197,7 @@ cada vértice isolado uma componente de tamanho 1.
 \caption{Efeito do peso mínimo sobre a conectividade da projeção.}
 \label{tab:limiar}
 \small
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{rrrrr}
 \toprule
 Peso mín. & Arestas & Isolados & Vértices na LCC & \% na LCC \\
@@ -218,6 +214,116 @@ Com dois, cada ligação tem apoio de mais de uma pessoa e a maior
 componente ainda cobre mais da metade dos produtos. Exigir três reduz
 essa cobertura para um terço. As medidas de pequeno mundo e robustez
 deste trabalho se referem à maior componente com peso mínimo dois.
+
+\section{Metodologia}
+\label{sec:metodologia}
+
+\paragraph{Ambiente e reprodutibilidade.}
+Todo o processamento foi feito em Python 3.11, com as versões das
+dependências fixadas em \texttt{uv.lock}. O pré-processamento
+(\texttt{src.etl.pipeline}) gera os arquivos de
+\texttt{data/processado/}, e quatro notebooks executam as Partes I, II
+e III e a análise de consoles, nessa ordem. Todos os sorteios usam a
+semente 42, então a reexecução reproduz as mesmas tabelas e figuras;
+só os tempos variam. Os tempos foram medidos em Linux, com Intel Core 7
+150U, cerca de 30 GB de RAM e Python 3.11.15. Código, dados tratados e
+instruções estão em \url{https://github.com/Jaedsonn/tp-grafos-amazon}.
+
+\paragraph{Representação e implementação.}
+O grafo é uma lista de adjacência em dicionários, e os pesos ficam
+num mapa à parte. São implementações próprias: BFS, DFS, verificação
+de Eulerianidade, Dijkstra com fila de prioridade, Bellman--Ford com
+parada antecipada, Floyd--Warshall vetorizado por intermediário,
+Tarjan para pontes e articulações (DFS iterativa), Prim, Kruskal com
+conjuntos disjuntos, a contagem de triângulos, a clusterização, o
+gerador \(G(n,m)\), o nulo bipartido, o ajuste de lei de potência, as
+remoções da robustez e as medidas de mistura por rótulo. Usamos
+bibliotecas em três papéis, sempre declarados: o igraph calcula
+diâmetro, raio, caminho médio exato e intermediação exata, que exigem
+uma busca a partir de cada vértice; o NetworkX e o igraph servem de
+referência nos testes; o pacote \texttt{powerlaw} confere o ajuste
+próprio e compara distribuições candidatas.
+
+\paragraph{Validação.}
+Cada função tem exemplos executáveis, e a suíte
+(\texttt{uv run pytest}) roda 97 verificações. No grafo real,
+conferimos a clusterização e os triângulos com o igraph, as
+distâncias da BFS com as do igraph, o custo das árvores geradoras com
+o NetworkX e a igualdade das distâncias de Dijkstra, Bellman--Ford e
+Floyd--Warshall nos mesmos subgrafos.
+
+\paragraph{Medidas estruturais.}
+Calculamos tudo na LCC, que é conexa por construção (T6); as
+componentes menores aparecem só na contagem de componentes. Diâmetro,
+raio e caminho médio são exatos. Para mostrar que uma estimativa
+barata bastaria, também estimamos o caminho médio com BFS a partir de
+1\,000 origens sorteadas e IC de 95\%.
+
+\paragraph{Medição de tempo.}
+Cada configuração tem dois aquecimentos descartados e 30 repetições
+cronometradas com o relógio de alta resolução do Python
+(\texttt{perf\_counter}). Com \(n=30\) repetições, o IC de 95\% da
+média usa a distribuição normal,
+\[
+  \bar t\pm z_{0{,}025}\,\frac{s}{\sqrt{n}},\qquad z_{0{,}025}=1{,}96,
+\]
+em que \(s\) é o desvio padrão amostral; com \(n<30\), o valor
+crítico seria o da t-Student com \(n-1\) graus de liberdade. Para comparar com a complexidade teórica,
+medimos subgrafos induzidos de tamanho crescente, obtidos por
+amostragem em bola de neve a partir do vértice de maior grau, e
+ajustamos uma reta ao logaritmo do tempo contra o logaritmo do custo
+teórico \(f(n,m)\). Uma inclinação próxima de 1 indica que \(f\)
+descreve o crescimento observado. Os pesos dos algoritmos ponderados
+são \(d=1/w\) (T7), derivados dos dados.
+
+\paragraph{Pequeno mundo.}
+Seguindo o Apêndice A, comparamos \(C\) e \(L\) com três
+referências, da mais fraca para a mais exigente: as aproximações
+analíticas de Erdős--Rényi, dez grafos \(G(n,m)\) simulados e três
+réplicas de um nulo bipartido. O nulo permuta os produtos entre as
+avaliações, preserva o número de avaliações de cada usuário e de cada
+produto e refaz T4--T6. Essa última referência existe porque a
+projeção cria cliques por construção: comparar a rede apenas com
+\(G(n,m)\) atribuiria à rede um agrupamento que vem do método. Para
+que as três comparações sejam justas, \(L\) é estimado em todos os
+grafos com o mesmo protocolo, 100 origens sorteadas. Resumimos as
+comparações por \(\sigma=(C/C_{\mathrm{ref}})/(L/L_{\mathrm{ref}})\).
+
+\paragraph{Lei de potência.}
+Seguindo o Apêndice B e Clauset et al.~\cite{clauset2009}, estimamos \(\gamma\)
+por máxima verossimilhança discreta na cauda \(k\geq k_{\min}\),
+escolhemos \(k_{\min}\) pela menor distância de Kolmogorov--Smirnov e
+comparamos a lei de potência com a lognormal e com a lei de potência
+truncada pela razão de verossimilhanças. Uma reta em escala log-log
+não basta como evidência.
+
+\paragraph{Robustez.}
+Seguindo o Apêndice C, removemos \(r=\lceil0{,}05n\rceil\) vértices da
+LCC. Na falha aleatória, são 30 sorteios uniformes. No ataque, usamos
+dois rankings fixos, calculados uma vez no grafo original: grau, que
+remove hubs, e intermediação, que remove pontes. Medimos (A) a fração
+\(S\) dos remanescentes na maior componente, (B) o número de
+componentes, (C) o caminho médio na maior componente, com 100
+origens, e (D) a fração de isolados. As curvas \(S(f)\) estendem os
+mesmos rankings até \(f=0{,}3\).
+
+\paragraph{Rótulos e mistura.}
+Os metadados trazem dois níveis de categoria, \emph{plataforma} e
+\emph{tipo}, que não são homogêneos: em \emph{Retro Gaming} e em
+\emph{Kids \& Family} o console aparece no tipo. Normalizamos os dois
+níveis em uma \emph{família de console} (40 valores, incluindo PC) e
+em uma \emph{classe de produto}: console, acessório, jogo, retrô,
+outros (figuras, cartões, realidade virtual) e sem rótulo, para
+restos de HTML ou categoria ausente. Para cada rótulo, calculamos a
+matriz de mistura \(e_{ab}\), a fração das pontas de aresta que ligam
+os rótulos \(a\) e \(b\), com \(a_a=\sum_b e_{ab}\), e a
+assortatividade categórica
+\(r=(\sum_a e_{aa}-\sum_a a_a^2)/(1-\sum_a a_a^2)\)
+\cite{newman2003}. A razão \(e_{ab}/(a_a a_b)\) compara o observado
+com o esperado ao acaso. A significância da homofilia vem de um teste
+de permutação: os rótulos são embaralhados entre os vértices 1\,000
+vezes, mantendo a topologia e a quantidade de vértices de cada
+rótulo.
 
 \section{Parte I -- Análise estrutural}
 
@@ -385,16 +491,10 @@ das árvores, pois empates podem produzir árvores diferentes com
 o mesmo custo. Os dez critérios de validação da Parte II passaram.
 
 \paragraph{Tempos e escalabilidade.}
-Usamos dois aquecimentos e 30 repetições por configuração, com
-\texttt{perf\_counter}. O IC de 95\% da média foi calculado como
-\(\bar t\pm 1{,}96s/\sqrt{30}\), em que \(s\) é o desvio padrão.
-Os subgrafos são induzidos por amostragem em bola de neve, iniciada
-no vértice de maior grau. Usamos \(n=1\,000,2\,000,4\,000,8\,000\)
+O protocolo de medição está na Seção~\ref{sec:metodologia}. Usamos \(n=1\,000,2\,000,4\,000,8\,000\)
 e a LCC para os sete primeiros algoritmos da Tabela~\ref{tab:tempos}.
 Bellman--Ford foi limitado a 500, 1\,000, 2\,000 e 4\,000
 vértices. Floyd--Warshall foi medido com 100, 200, 400 e 800.
-As medições foram feitas em Linux, com Intel Core 7 150U, cerca
-de 30 GB de RAM e Python 3.11.15.
 
 Na LCC, Kruskal foi 2,51 vezes mais rápido que Prim nesta
 execução, embora ambos tenham a mesma ordem teórica para grafos
@@ -639,7 +739,7 @@ considerar janelas de tempo ou as notas. Na comparação de pequeno
 mundo, podemos ampliar as réplicas bipartidas, usar trocas que
 preservem exatamente os graus e controlar o tamanho da componente.
 
-\begin{thebibliography}{8}
+\begin{thebibliography}{9}
 \bibitem{snapamazon} Stanford Network Analysis Project.
 \emph{Web data: Amazon reviews}.
 \url{https://snap.stanford.edu/data/web-Amazon.html}.
@@ -671,6 +771,11 @@ Random graphs with arbitrary degree distributions and their applications.
 Network 'Small-World-Ness': A Quantitative Method for Determining Canonical Network Equivalence.
 \emph{PLoS ONE} 3(4), e0002051.
 \url{https://doi.org/10.1371/journal.pone.0002051}.
+
+\bibitem{newman2003} M. E. J. Newman. 2003.
+Mixing patterns in networks.
+\emph{Physical Review E} 67, 026126.
+\url{https://doi.org/10.1103/PhysRevE.67.026126}.
 
 \bibitem{clauset2009} Aaron Clauset, Cosma Rohilla Shalizi e M. E. J. Newman. 2009.
 Power-Law Distributions in Empirical Data.
