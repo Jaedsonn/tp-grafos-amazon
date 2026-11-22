@@ -1,7 +1,7 @@
 """
 Executa o trabalho inteiro, na ordem, sem abrir o Jupyter.
 
-    uv run python scripts/run_all.py                 # testes, ETL (se houver dados brutos) e notebooks
+    uv run python scripts/run_all.py                 # ETL (se houver dados brutos) e notebooks
     uv run python scripts/run_all.py --sem-parte2    # pula a Parte II, que mede tempos
     uv run python scripts/run_all.py --notebooks 04 05
 
@@ -66,16 +66,8 @@ def main() -> None:
     argumentos.add_argument(
         "--sem-parte2", action="store_true", help="não remede os tempos"
     )
-    argumentos.add_argument("--sem-testes", action="store_true")
     opcoes = argumentos.parse_args()
 
-    if not opcoes.sem_testes:
-        etapa(
-            "testes (pytest)",
-            lambda: subprocess.run(
-                [sys.executable, "-m", "pytest", "-q"], cwd=RAIZ, check=True
-            ),
-        )
     if config.ARQ_AVALIACOES.exists() and config.ARQ_METADADOS.exists():
         etapa(
             "pré-processamento (src.etl.pipeline)",

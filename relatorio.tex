@@ -41,9 +41,11 @@ clusterização elevada; contudo, essa clusterização é reproduzida por um
 modelo nulo bipartido, o que indica um efeito da projeção, e não da
 estrutura da rede. A distribuição de graus tem cauda pesada, mais bem
 descrita por uma lognormal do que por uma lei de potência pura, e a
-rede é robusta a falhas aleatórias (a maior componente retém 98,8\% dos
-vértices), mas vulnerável a ataques por intermediação (86,5\% e 11
-vezes mais componentes). Por fim, a rede reproduz a organização do mercado de
+rede é robusta a falhas aleatórias e sofre degradação moderada sob
+ataques direcionados: após remover 5\% dos vértices, a maior componente
+retém 98,8\% dos remanescentes, contra 86,5\% no ataque por
+intermediação, e quase toda a perda vem de vértices periféricos que
+ficam isolados. Por fim, a rede reproduz a organização do mercado de
 consoles: 55,2\% das arestas ligam produtos da mesma família de
 console, contra 9,7\% esperados ao acaso, e os consoles concentram
 ligações com outros consoles e acessórios.
@@ -70,6 +72,7 @@ e o código e os dados tratados estão disponíveis conforme a
 Seção~\ref{sec:disponibilidade}.
 
 \section{Determinação do grafo}
+\label{sec:determinacao}
 
 Seja \(S(M)\) a soma dos dígitos da matrícula \(M\) e
 \(U(M)\) o número formado pelos dois últimos dígitos. O
@@ -83,12 +86,19 @@ Logo,
   g=[32(43+1)]\bmod 129=1408\bmod 129=118.
 \]
 A regra usa 129 quando o resto é zero. O índice G118 corresponde a \emph{web-Amazon}
-(\emph{Amazon reviews}) no catálogo da disciplina. Os links de dados
-na página do SNAP remetem ao aviso que encaminha para a coleção
-mantida pela UCSD \cite{snapamazon,acessosnap}. Dessa coleção
-usamos Amazon Review Data (2018), categoria \emph{Video Games}
-\cite{amazon2018,ni2019}. O recorte permite construir e analisar
-uma rede de coavaliação de jogos, consoles e acessórios.
+(\emph{Amazon reviews}) no catálogo da disciplina.
+
+\paragraph{Troca da base de dados.}
+O grafo analisado não vem do arquivo listado na planilha da
+disciplina. Os links de dados da página \emph{web-Amazon} do SNAP
+remetem a um aviso que encaminha para a coleção mantida pela UCSD
+\cite{snapamazon,acessosnap}. Dessa coleção usamos a edição
+Amazon Review Data (2018), restrita à categoria \emph{Video Games}
+\cite{amazon2018,ni2019}. A troca tem duas consequências: o período
+passa a ser 1997--2018, e o recorte cobre uma única categoria. Por
+isso, os tamanhos deste trabalho não se comparam aos da planilha.
+Escolhemos \emph{Video Games} porque é um recorte viável que forma
+uma rede interpretável de jogos, consoles e acessórios.
 
 \section{Construção e tratamento da rede}
 
@@ -255,20 +265,18 @@ Watts--Strogatz, o nulo bipartido, o ajuste de lei de potência, as
 remoções da robustez e as medidas de mistura por rótulo. Usamos
 bibliotecas em três papéis, sempre declarados: o igraph calcula a
 intermediação exata dos ataques; o NetworkX e o igraph servem de
-referência nos testes e conferem os valores exatos; o pacote
+referência para conferir os valores exatos; o pacote
 \texttt{powerlaw} confere o ajuste próprio e compara distribuições
 candidatas.
 
 \fussy
 \paragraph{Validação.}
-Cada função tem exemplos executáveis, e a suíte
-(\texttt{uv run pytest}) roda 163 verificações, entre elas os testes
-de \texttt{tests/}, que comparam Tarjan, as distâncias exatas e os
-geradores com o NetworkX e com propriedades conhecidas. No grafo real,
-conferimos a clusterização e os triângulos com o igraph, o diâmetro,
-o raio e o caminho médio com o igraph, o custo das árvores geradoras com
-o NetworkX e a igualdade das distâncias de Dijkstra, Bellman--Ford e
-Floyd--Warshall nos mesmos subgrafos.
+Nos notebooks, conferimos o código próprio no grafo real com
+bibliotecas de referência: a clusterização, os triângulos, o diâmetro,
+o raio e o caminho médio com o igraph; o custo das árvores geradoras e
+as componentes fortemente conexas com o NetworkX; e a igualdade das
+distâncias de Dijkstra, Bellman--Ford e Floyd--Warshall nos mesmos
+subgrafos.
 
 \paragraph{Medidas estruturais.}
 Calculamos tudo na LCC, que é conexa por construção (T6); as
@@ -355,13 +363,11 @@ contém:
 
 \begin{itemize}
   \item \texttt{src/}: o pré-processamento T1--T7 e as implementações
-  próprias dos algoritmos e das medidas, com exemplos executáveis;
-  \item \texttt{tests/}: testes de integração contra o NetworkX; a
-  suíte completa (\texttt{uv run pytest}) tem 163 verificações;
+  próprias dos algoritmos e das medidas;
   \item \texttt{notebooks/}: os cinco notebooks das Partes I, II e
   III, da análise de consoles e dos modelos clássicos;
-  \item \texttt{scripts/run\_all.py}: executa testes,
-  pré-processamento e notebooks em sequência;
+  \item \texttt{scripts/run\_all.py}: executa o pré-processamento e os
+  notebooks em sequência;
   \item \texttt{data/processado/}: o funil de tratamento, os tamanhos
   das componentes, o catálogo dos 21\,284 produtos da LCC e suas
   320\,742 arestas ponderadas;
@@ -700,15 +706,13 @@ um por grau e outro por intermediação. Esta última mede a
 participação de um vértice em caminhos mínimos entre outros pares. Foi
 calculada de forma exata com igraph e distância em saltos.
 
-Depois da remoção, medimos \(S\), a fração dos vértices
-remanescentes na maior componente, o número de componentes, o
-caminho médio \(L\) em saltos na maior componente remanescente e
-a fração de isolados entre os vértices restantes.
-O cálculo de \(L\) utiliza BFS a partir de 100 origens amostradas.
-Para converter \(S\) em fração da rede original, multiplicamos por
-\((n-r)/n\). Nessa escala, a maior componente retém em média 93,9\%
-dos vértices sob falhas aleatórias, 84,2\% sob ataque por grau e
-82,1\% sob ataque por intermediação.
+Depois da remoção, medimos (A) \(S\), a fração dos vértices
+remanescentes na maior componente, (B) o número de componentes, (C) o
+caminho médio \(L\) em saltos na maior componente remanescente, com
+BFS a partir de 100 origens amostradas, e (D) a fração de isolados.
+As duas frações, A e D, usam a mesma base, os \(n-r\) vértices
+remanescentes, e essa é a escala da tabela, do boxplot e das curvas
+\(S(f)\).
 
 \begin{table*}[tbp]
 \centering
@@ -739,13 +743,24 @@ D. Isolados (\%) & \(0{,}97\pm0{,}10\) & [0,93; 1,00] & 9,37 & 10,71 \\
   {A curva aleatória cai pouco. As curvas de ataque dirigido caem mais e trocam de ordem acima de 20 por cento.}
   {fig:curvas}
 
-A remoção aleatória mantém quase todos os remanescentes na mesma
-componente e pouco altera os caminhos. Já o ataque por
-intermediação cria cerca de 11 vezes mais componentes e aumenta
-\(L\) para 5,28 saltos. A Tabela~\ref{tab:robustez} e a
-Figura~\ref{fig:robustez} mostram que a LCC resiste bem a
-falhas aleatórias de 5\%, mas depende de uma parcela pequena
-de vértices centrais.
+A remoção aleatória mantém 98,8\% dos remanescentes na maior
+componente e pouco altera os caminhos. Os ataques reduzem \(S\) para
+88,6\% (grau) e 86,5\% (intermediação). É uma queda de 10 a 12
+pontos, e não o colapso \(S_{\mathrm{rand}}\gg S_{\mathrm{cent}}\) que
+o Apêndice C associa a redes muito vulneráveis. O contraste forte
+está nas outras métricas: o ataque por intermediação cria 11 vezes
+mais componentes, multiplica por 11 a fração de isolados e deixa \(L\)
+42\% acima do da remoção aleatória (Tabela~\ref{tab:robustez} e
+Figura~\ref{fig:robustez}).
+
+As métricas B e D explicam a queda de \(S\). No ataque por
+intermediação, 13,5\% dos remanescentes saem da maior componente, e
+10,7 desses pontos (79\%) são vértices isolados. No ataque por grau,
+são 9,4 de 11,4 pontos (82\%). O ataque desprende a periferia,
+sobretudo folhas presas a um hub ou a uma ponte, e o núcleo continua
+conexo, embora com caminhos mais longos. Concluímos que a LCC é
+robusta a falhas aleatórias e sofre degradação moderada sob ataque
+direcionado: perde a periferia, mas não a conectividade do núcleo.
 
 A Figura~\ref{fig:curvas} estende os ataques até remover 30\%
 da rede. Para a curva aleatória, usamos uma única ordem aleatória
@@ -932,7 +947,7 @@ mas geravam 47,5\% das ocorrências de pares. Sem o corte T2, a
 projeção refletiria poucos colecionadores. A poda T5 decide quanto da
 rede sobra: com peso mínimo 1, 2 ou 3, a maior componente tem 98,8\%,
 58,1\% ou 33,2\% dos produtos (Tabela~\ref{tab:limiar}). Esperamos
-que a cauda pesada, a fragilidade a ataques e a homofilia resistam a
+que a cauda pesada, a sensibilidade a ataques e a homofilia resistam a
 esses cortes, porque dependem de diferenças de ordens de grandeza.
 Já \(C\), \(L\) e o número de componentes dependem diretamente do
 limiar. Ainda não repetimos as Partes I e III em outros limiares, e
@@ -950,10 +965,8 @@ Xbox 360--Xbox One pode ser troca de geração, e o par PlayStation
 de tempo separaria as duas leituras.
 
 \paragraph{Fonte e rótulos.}
-O G118 é o \emph{web-Amazon} do SNAP, cujos arquivos foram
-redirecionados para a coleção da UCSD. Usamos a edição de 2018,
-categoria \emph{Video Games}, e por isso os tamanhos não se comparam
-diretamente aos da planilha da disciplina. Os rótulos vêm de
+A troca para a edição de 2018 (Seção~\ref{sec:determinacao}) impede comparar os tamanhos
+com os da planilha da disciplina. Os rótulos vêm de
 \emph{scraping}: 728 produtos da LCC têm restos de HTML no tipo, o
 próprio Wii está sem tipo, e a categoria \emph{Consoles} inclui
 pacotes com jogo. As frações por classe são, portanto, limites
@@ -989,9 +1002,9 @@ processo mais próximo de multiplicativo que de ligação preferencial.
 
 A rede de coavaliações tem poucos pares ligados diretamente, mas
 caminhos curtos dentro da maior componente. A cauda dos graus é
-pesada, sem ser uma lei de potência pura, e o contraste entre falhas
-aleatórias e ataques mostra quanto a conectividade depende de itens
-centrais. O agrupamento elevado vem da projeção em cliques, como
+pesada, sem ser uma lei de potência pura. A rede resiste a falhas
+aleatórias, e os ataques direcionados a degradam só moderadamente:
+soltam a periferia, mas o núcleo continua conexo. O agrupamento elevado vem da projeção em cliques, como
 mostrou o nulo bipartido, e não deve ser lido como propriedade da
 rede. O achado mais forte é a organização por família de console:
 55,2\% das arestas ficam dentro da família, contra 9,7\% ao acaso,

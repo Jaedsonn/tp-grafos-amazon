@@ -24,7 +24,7 @@ uv sync
 uv run python scripts/run_all.py
 ```
 
-O `run_all` roda os testes, o pré-processamento (se os arquivos brutos estiverem em `data/raw/`) e os cinco notebooks, na ordem, gravando tabelas em `results/` e figuras em `imagens/`. Sem os dados brutos, tudo roda com os arquivos de `data/processado/`. Para não remedir os tempos da Parte II, use `--sem-parte2`; para escolher notebooks, `--notebooks 04 05`.
+O `run_all` roda o pré-processamento (se os arquivos brutos estiverem em `data/raw/`) e os cinco notebooks, na ordem, gravando tabelas em `results/` e figuras em `imagens/`. Sem os dados brutos, tudo roda com os arquivos de `data/processado/`. Para não remedir os tempos da Parte II, use `--sem-parte2`; para escolher notebooks, `--notebooks 04 05`.
 
 ## Checklist do enunciado
 
@@ -49,7 +49,6 @@ O `run_all` roda os testes, o pré-processamento (se os arquivos brutos estivere
 | Q3 — robustez aleatória e direcionada, métricas A–D, boxplot | `src/parte3/robustez.py`; [`parte3_robustez.csv`](results/parte3_robustez.csv) |
 | Q4 — descoberta mais interessante (mapa dos consoles) | [`04_consoles`](notebooks/04_consoles.ipynb); `src/parte3/consoles.py`; `results/parte3_consoles_*.csv` |
 | Q5 (extra) — ER, BA e WS simulados com código próprio | [`05_modelos`](notebooks/05_modelos.ipynb); `src/parte3/modelos.py`; [`parte3_modelos.csv`](results/parte3_modelos.csv) |
-| Testes | `tests/` (integração contra NetworkX) e exemplos executáveis em `src/`: `uv run pytest` |
 | Relatório no template WebMedia, PDF com a matrícula | [`relatorio.tex`](relatorio.tex), [`224215943.pdf`](224215943.pdf) |
 
 ## 1. O nosso Dataset (Os Dados)
@@ -90,7 +89,7 @@ O projeto usa Python 3.11. As versões das dependências estão em `uv.lock`.
 
 ### Rodar com os dados tratados
 
-Depois de clonar o repositório e executar `uv sync`, rode `uv run pytest` para conferir os testes de `tests/` e os exemplos do código. Todos os notebooks rodam com os arquivos versionados em `data/processado/`. Para abri-los, rode `uv run jupyter lab` na raiz do projeto.
+Depois de clonar o repositório e executar `uv sync`, todos os notebooks rodam com os arquivos versionados em `data/processado/`. Para abri-los, rode `uv run jupyter lab` na raiz do projeto.
 
 ### Obter os dados brutos
 
@@ -123,7 +122,7 @@ No JupyterLab, abra os notebooks pelo diretório `notebooks/`, selecione o kerne
 | 5 | [Parte III, Q4 — Concentração em consoles](notebooks/04_consoles.ipynb) | 2 min |
 | 6 | [Parte III, Q5 — Modelos clássicos](notebooks/05_modelos.ipynb) | 6 min |
 
-Os tempos são aproximados e dependem da máquina. Os notebooks gravam tabelas em `results/` e figuras em `imagens/`. O repositório inclui as [medições da Parte II](results/parte2_tempos.csv) a [comparação dos limiares de coavaliação](results/parte3_sensibilidade.csv) e o [resumo da análise de consoles](results/parte3_consoles_resumo.csv). O notebook de consoles usa só os arquivos de `data/processado/` e roda sem os dados brutos. Para rodar os testes e os exemplos executáveis dos módulos, use `uv run pytest`.
+Os tempos são aproximados e dependem da máquina. Os notebooks gravam tabelas em `results/` e figuras em `imagens/`. O repositório inclui as [medições da Parte II](results/parte2_tempos.csv) a [comparação dos limiares de coavaliação](results/parte3_sensibilidade.csv) e o [resumo da análise de consoles](results/parte3_consoles_resumo.csv). O notebook de consoles usa só os arquivos de `data/processado/` e roda sem os dados brutos.
 
 ## 5. Arquivos da entrega
 
