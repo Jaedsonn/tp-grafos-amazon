@@ -252,3 +252,22 @@ def plotar_concentracao_por_classe(
     barra_cor.set_label("log₂(observado / esperado)", fontsize=8)
     figura.tight_layout()
     return figura
+
+
+def plotar_ccdf_modelos(curvas: dict[str, dict[int, float]]) -> Figure:
+    """
+    :param curvas: nome do grafo -> CCDF dos graus, P(K >= k) por k
+    :return: as CCDFs sobrepostas em log-log; a primeira curva é o grafo real, em preto
+
+    Exemplo:
+        figura = plotar_ccdf_modelos({"real": {1: 1.0, 2: 0.3}, "ER": {1: 1.0, 2: 0.9}})
+    """
+    figura, eixo = plt.subplots(figsize=(6, 4))
+    for i, (nome, ccdf) in enumerate(curvas.items()):
+        estilo = {"color": "black", "lw": 2} if i == 0 else {"lw": 1.3}
+        eixo.loglog(list(ccdf), list(ccdf.values()), "-", label=nome, **estilo)
+    eixo.set(xlabel="grau k", ylabel="P(K ≥ k)")
+    eixo.grid(True, which="major", alpha=0.3)
+    eixo.legend(fontsize=8, frameon=False)
+    figura.tight_layout()
+    return figura
