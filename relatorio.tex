@@ -41,8 +41,9 @@ clusterização elevada; contudo, essa clusterização é reproduzida por um
 modelo nulo bipartido, o que indica um efeito da projeção, e não da
 estrutura da rede. A distribuição de graus tem cauda pesada, mais bem
 descrita por uma lognormal do que por uma lei de potência pura, e a
-rede é robusta a falhas aleatórias, mas vulnerável a ataques por
-intermediação. Por fim, a rede reproduz a organização do mercado de
+rede é robusta a falhas aleatórias (a maior componente retém 98,8\% dos
+vértices), mas vulnerável a ataques por intermediação (86,5\% e 11
+vezes mais componentes). Por fim, a rede reproduz a organização do mercado de
 consoles: 55,2\% das arestas ligam produtos da mesma família de
 console, contra 9,7\% esperados ao acaso, e os consoles concentram
 ligações com outros consoles e acessórios.
@@ -63,7 +64,10 @@ Organizamos a análise em três partes. A primeira descreve a estrutura
 da rede. A segunda aplica algoritmos estudados na disciplina e compara
 a complexidade teórica com os tempos medidos. A terceira investiga o
 efeito de pequeno mundo, a distribuição dos graus, a robustez e a
-relação entre as arestas e os rótulos de plataforma.
+relação entre as arestas e os rótulos de plataforma. Os resultados
+estão nas Seções~\ref{sec:parte1} a~\ref{sec:parte3}, uma por parte,
+e o código e os dados tratados estão disponíveis conforme a
+Seção~\ref{sec:disponibilidade}.
 
 \section{Determinação do grafo}
 
@@ -232,8 +236,9 @@ dependências fixadas em \texttt{uv.lock}. O pré-processamento
 e III e a análise de consoles, nessa ordem. Todos os sorteios usam a
 semente 42, então a reexecução reproduz as mesmas tabelas e figuras;
 só os tempos variam. Os tempos foram medidos em Linux, com Intel Core 7
-150U, cerca de 30 GB de RAM e Python 3.11.15. Código, dados tratados e
-instruções estão em \url{https://github.com/Jaedsonn/tp-grafos-amazon}.
+150U, cerca de 30 GB de RAM e Python 3.11.15. O repositório com
+código, dados tratados e instruções está descrito na
+Seção~\ref{sec:disponibilidade}.
 
 \paragraph{Representação e implementação.}
 O grafo é uma lista de adjacência em dicionários, e os pesos ficam
@@ -331,7 +336,32 @@ de permutação: os rótulos são embaralhados entre os vértices 1\,000
 vezes, mantendo a topologia e a quantidade de vértices de cada
 rótulo.
 
+\section{Disponibilidade de código e dados}
+\label{sec:disponibilidade}
+
+Código, dados tratados e instruções de execução estão em
+\url{https://github.com/Jaedsonn/tp-grafos-amazon}. O repositório
+contém:
+
+\begin{itemize}
+  \item \texttt{src/}: o pré-processamento T1--T7 e as implementações
+  próprias dos algoritmos e das medidas, com 97 verificações
+  automáticas (\texttt{uv run pytest});
+  \item \texttt{notebooks/}: os quatro notebooks das Partes I, II e III
+  e da análise de consoles, executados nessa ordem;
+  \item \texttt{data/processado/}: o funil de tratamento, os tamanhos
+  das componentes, o catálogo dos 21\,284 produtos da LCC e suas
+  320\,742 arestas ponderadas;
+  \item \texttt{results/} e \texttt{imagens/}: as tabelas e as figuras
+  deste relatório.
+\end{itemize}
+
+O \texttt{README.md} explica como preparar o ambiente
+(\texttt{uv sync}), onde obter os dados brutos da coleção de 2018,
+que não são redistribuídos, e como reexecutar cada etapa.
+
 \section{Parte I -- Análise estrutural}
+\label{sec:parte1}
 
 O grau \(k_v\) conta os vizinhos de \(v\), enquanto a força soma
 os pesos de suas arestas. A densidade é \(2m/[n(n-1)]\).
@@ -496,6 +526,15 @@ conectar a rede inteira. A validação com NetworkX comparou o custo
 das árvores, pois empates podem produzir árvores diferentes com
 o mesmo custo. Os dez critérios de validação da Parte II passaram.
 
+\paragraph{Complexidade teórica.}
+Com lista de adjacência, BFS, DFS, Tarjan e a verificação de
+Eulerianidade visitam cada vértice e cada aresta uma vez:
+\(O(n+m)\). Dijkstra, Prim e Kruskal custam \(O(m\log n)\): os dois
+primeiros com fila de prioridade, o terceiro pela ordenação das
+arestas, e \(\log m\le2\log n\). Bellman--Ford faz até \(n-1\)
+passagens sobre \(m\) arestas, \(O(nm)\), e Floyd--Warshall testa
+\(n\) intermediários sobre \(n^2\) pares, \(O(n^3)\).
+
 \paragraph{Tempos e escalabilidade.}
 O protocolo de medição está na Seção~\ref{sec:metodologia}. Usamos \(n=1\,000,2\,000,4\,000,8\,000\)
 e a LCC para os sete primeiros algoritmos da Tabela~\ref{tab:tempos}.
@@ -505,7 +544,11 @@ vértices. Floyd--Warshall foi medido com 100, 200, 400 e 800.
 Na LCC, Kruskal foi 2,51 vezes mais rápido que Prim nesta
 execução, embora ambos tenham a mesma ordem teórica para grafos
 simples. A Figura~\ref{fig:lineares} mostra inclinações entre
-1,01 e 1,16 no eixo de custo \(n+m\). Em um teste separado na
+1,01 e 1,16 no eixo de custo \(n+m\). Na Figura~\ref{fig:heap},
+Dijkstra, Prim e Kruskal têm inclinações de 1,07, 1,15 e 0,93 em
+relação a \(m\log n\), compatíveis com a ordem teórica. Prim é o mais
+lento e Kruskal o mais rápido em todos os tamanhos medidos, então a
+diferença entre os dois está na constante, não na ordem. Em um teste separado na
 mesma LCC, retirar a ordenação dos vizinhos em Euler reduziu a
 mediana de 118,01 para 76,33~ms, com 30 chamadas por versão e
 o mesmo diagnóstico.
@@ -531,6 +574,7 @@ Esses dois algoritmos foram medidos em entradas menores.
   {fig:bf-floyd}
 
 \section{Parte III -- Propriedades da rede}
+\label{sec:parte3}
 
 \subsection{Propriedade de pequeno mundo}
 
@@ -587,6 +631,16 @@ clusterização que o grafo real e obteve distâncias médias menores.
 A projeção já é suficiente para gerar clusterização elevada nesse
 experimento. As três réplicas e a diferença de tamanho entre as
 componentes limitam a comparação com esse segundo modelo.
+
+Em resposta à pergunta da Parte III, a rede tem a assinatura
+de pequeno mundo (\(L\) pequeno e \(C\gg C_{\mathrm{ER}}\)), mas
+o rótulo só faz sentido com ressalva: o agrupamento é herdado da
+projeção, e não de uma organização local própria dos produtos. A
+implicação prática é que a informação ou a influência, como uma
+recomendação baseada em coavaliações, alcança qualquer produto da
+componente em cerca de quatro saltos, e a distância curta vale
+para a maior componente, não para os 42\% dos produtos
+fora dela.
 
 \subsection{Distribuição de graus e lei de potência}
 
@@ -655,8 +709,8 @@ D. Isolados (\%) & \(0{,}97\pm0{,}10\) & [0,93; 1,00] & 9,37 & 10,71 \\
 \begin{figure*}[tbp]
 \centering
 \includegraphics[width=.72\textwidth]{imagens/parte3_robustez_boxplot.pdf}
-\caption{Distribuição das quatro métricas nas remoções aleatórias de 5\%, com referência aos ataques direcionados.}
-\Description{Os ataques reduzem a maior componente e aumentam as componentes, o caminho médio e os isolados.}
+\caption{Distribuição das quatro métricas nas 30 remoções aleatórias de 5\% (caixas). O triângulo verde marca a média, e o ponto preto com barra, a média \(\pm\) desvio padrão. Os X marcam os ataques por grau e por intermediação (\emph{betweenness}).}
+\Description{Os ataques, marcados por X, reduzem a maior componente e aumentam as componentes, o caminho médio e os isolados em relação às caixas da remoção aleatória.}
 \label{fig:robustez}
 \end{figure*}
 \figura{parte3_curvas_ataque}
@@ -749,8 +803,8 @@ mesma marca. Em seguida vêm Nintendo DS com PSP (68), os portáteis
 rivais.
 
 \paragraph{Os consoles não são os hubs.}
-Nenhum console está entre os 20 maiores graus. Eles são 3,7\% do topo
-\(r\) por grau e 2,4\% por intermediação: mais que sua fração na rede,
+Nenhum console está entre os 20 maiores graus. Eles são 3,7\% dos \(r\)
+vértices do topo por grau e 2,4\% por intermediação: mais que sua fração na rede,
 mas pouco. O maior grau é do controle sem fio do Xbox 360 (1\,274
 vizinhos), um acessório, que fica em quarto lugar em intermediação. A
 maior ponte é o próprio Wii (1\,210 vizinhos), mas ele está sem tipo
@@ -769,11 +823,18 @@ elos entre as famílias, e os nichos se soltam.
 
 \subsection{Comparação com modelos clássicos}
 
-A clusterização de Erdős--Rényi ficou muito abaixo da observada.
-Barabási--Albert gera hubs e uma lei de potência, mas o ajuste
-lognormal foi superior nos nossos dados. Watts--Strogatz também
-combina agrupamento local e caminhos curtos. Na rede estudada,
-a projeção em cliques explica parte do agrupamento.
+Nenhum dos três modelos descreve a rede sozinho. Erdős--Rényi
+(\(C=0{,}0014\), graus aproximadamente Poisson) fica 229 vezes abaixo
+da clusterização observada e não explica o grau máximo de 1\,274,
+muito acima do que uma distribuição de média 30 permite.
+Barabási--Albert prevê \(\gamma=3\), e o valor estimado foi
+\(\hat\gamma=2{,}11\), com a lognormal ainda preferida à lei pura.
+Watts--Strogatz reproduz agrupamento alto com caminhos curtos, mas
+parte de uma rede quase regular e não gera hubs. É, ainda assim, o
+mais próximo no par \((C,L)\). O que reproduz o grafo é o mecanismo
+da construção: o nulo bipartido recupera o agrupamento (0,359 contra
+0,325), embora subestime o caminho médio (2,89 contra 3,78) por não
+conter a estrutura de famílias de console.
 
 \section{Discussão crítica}
 
@@ -792,7 +853,8 @@ outra coisa: a rede real tem \(L\) maior que o dele (3,78 contra
 produziriam, e a homofilia por família da Seção~\ref{sec:consoles}
 explica por quê: os produtos ficam presos à sua família de console.
 O mesmo cuidado vale para a homofilia, cuja referência analítica
-(11,5\%) e cuja permutação de rótulos (15,3\%) diferem porque
+(11,5\%, plataforma bruta) e cuja permutação de rótulos (15,3\%, mesmo
+rótulo) diferem porque
 preservam coisas diferentes. Nos dois casos, o observado fica muito
 acima. A comparação com o nulo bipartido tem limites: são só três
 réplicas, e a maior componente delas tem cerca de 14 mil vértices,
@@ -802,7 +864,7 @@ contra 21 mil na rede real.
 Uma aresta registra que dois produtos têm avaliadores em comum. O
 CSV de 2018 não informa se a compra foi verificada, e quem avalia é
 uma fração dos compradores, enviesada para quem escreve muito. Por
-isso, a ``concentração de compra de consoles'' da Q4 é uma
+isso, a ``concentração de compra de consoles'' da Seção~\ref{sec:consoles} é uma
 concentração de \emph{coavaliações}. Filtrar avaliações de compra
 verificada, campo que existe nos arquivos completos da coleção,
 aproximaria melhor a compra conjunta.
@@ -825,7 +887,7 @@ amplos.
 
 \paragraph{O tempo foi apagado.}
 A rede une avaliações de 1997 a 2018. Uma aresta pode ligar produtos
-avaliados com anos de diferença, e isso muda a leitura da Q4: o par
+avaliados com anos de diferença, e isso muda a leitura dos pares de consoles: o par
 Xbox 360--Xbox One pode ser troca de geração, e o par PlayStation
 4--Xbox One, posse simultânea de rivais. Só uma análise por janelas
 de tempo separaria as duas leituras.
@@ -843,7 +905,7 @@ inferiores, e a homofilia se refere aos rótulos disponíveis.
 \paragraph{Pontes e hubs.}
 O ataque por intermediação é mais destrutivo até 20\% de remoção, e o
 ataque por grau passa a ser a partir de 22,5\%
-(Figura~\ref{fig:curvas}). A Q4 sugere a razão: a intermediação
+(Figura~\ref{fig:curvas}). A análise dos consoles sugere a razão: a intermediação
 remove primeiro as pontes entre famílias, como o Wii, o DS Lite e
 \emph{Big Kahuna Reef}, e isola as famílias. Depois disso, o que
 fragmenta cada família são os seus hubs internos, que o ranking por
