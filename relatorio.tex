@@ -27,24 +27,28 @@
 \renewcommand{\shortauthors}{Macedo}
 
 \begin{abstract}
-Construímos uma rede de produtos da categoria \emph{Video Games}, do
-conjunto de dados Amazon Reviews 2018. Dois produtos são ligados quando
-pelo menos dois usuários avaliaram ambos. A maior componente conexa
-contém 21\,284 vértices e 320\,742 arestas. Medimos suas propriedades
-estruturais, implementamos algoritmos clássicos e comparamos seus
-tempos de execução. A rede apresentou indícios de pequeno mundo
-em relação a Erdős--Rényi, mas sua clusterização ficou abaixo da
-obtida ao projetar um bipartido aleatorizado. A distribuição de graus
-tem cauda pesada, com ajuste lognormal superior ao da lei de potência
-pura. Ao remover 5\% dos vértices ao acaso, 98,83\% dos remanescentes
-continuaram na maior componente, contra 86,47\% com remoção por
-intermediação. A rede reconstrói o mercado de consoles: 55,2\% das
-arestas ligam produtos da mesma família de console, ante 9,7\% ao
-acaso, e os consoles, com 1,4\% dos produtos, têm o dobro das ligações
-que sua fração prevê, sobretudo com outros consoles e acessórios.
+Este trabalho analisa a rede de coavaliação de produtos da categoria
+\emph{Video Games} do conjunto Amazon Reviews 2018, atribuída como
+grafo G118. A rede é obtida pela projeção do grafo bipartido
+usuário--produto: dois produtos são ligados quando ao menos dois
+usuários avaliaram ambos, e a análise se concentra na maior
+componente conexa, com 21\,284 vértices e 320\,742 arestas. Calculamos
+as medidas estruturais da rede, implementamos os algoritmos clássicos
+da disciplina, comparando complexidade teórica e tempo observado, e
+investigamos as propriedades de pequeno mundo, lei de potência e
+robustez. A rede é esparsa, tem caminho médio de 3,71 saltos e
+clusterização elevada; contudo, essa clusterização é reproduzida por um
+modelo nulo bipartido, o que indica um efeito da projeção, e não da
+estrutura da rede. A distribuição de graus tem cauda pesada, mais bem
+descrita por uma lognormal do que por uma lei de potência pura, e a
+rede é robusta a falhas aleatórias, mas vulnerável a ataques por
+intermediação. Por fim, a rede reproduz a organização do mercado de
+consoles: 55,2\% das arestas ligam produtos da mesma família de
+console, contra 9,7\% esperados ao acaso, e os consoles concentram
+ligações com outros consoles e acessórios.
 \end{abstract}
 
-\keywords{teoria dos grafos, Amazon Reviews, coavaliação, pequeno mundo, robustez}
+\keywords{teoria dos grafos, redes complexas, coavaliação, projeção bipartida, pequeno mundo, robustez, homofilia}
 \maketitle
 
 \section{Introdução}
