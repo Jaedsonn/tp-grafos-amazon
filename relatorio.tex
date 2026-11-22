@@ -677,6 +677,7 @@ rankings, ambos calculados antes das remoções, depende da fração
 retirada.
 
 \subsection{Descoberta mais interessante: o mapa dos consoles}
+\label{sec:consoles}
 
 A descoberta mais interessante é que a rede reconstrói o mercado de
 consoles sem nunca ter visto um rótulo. A plataforma e o tipo não
@@ -770,38 +771,114 @@ lognormal foi superior nos nossos dados. Watts--Strogatz também
 combina agrupamento local e caminhos curtos. Na rede estudada,
 a projeção em cliques explica parte do agrupamento.
 
+\section{Discussão crítica}
+
+\paragraph{O modelo nulo decide a resposta.}
+A pergunta ``a rede é pequeno mundo?'' teve duas respostas opostas,
+conforme a referência. Contra Erdős--Rényi, \(\sigma=196\); contra o
+nulo bipartido, \(\sigma=0{,}69\). A segunda é a mais informativa:
+qualquer projeção de um bipartido gera cliques, então o \(C\) alto é
+efeito do método, não um mecanismo da rede. O erro simétrico também é
+possível. Se a análise fosse feita no próprio bipartido
+usuário--produto, sem projeção, \(C\) seria zero por construção, pois
+um grafo bipartido não tem ciclos ímpares nem triângulos, e
+\(\sigma\) seria 0 por outro artefato. O que o nulo bipartido revela é
+outra coisa: a rede real tem \(L\) maior que o dele (3,78 contra
+2,89). Os caminhos são mais longos do que coavaliações ao acaso
+produziriam, e a homofilia por família da Seção~\ref{sec:consoles}
+explica por quê: os produtos ficam presos à sua família de console.
+O mesmo cuidado vale para a homofilia, cuja referência analítica
+(11,5\%) e cuja permutação de rótulos (15,3\%) diferem porque
+preservam coisas diferentes. Nos dois casos, o observado fica muito
+acima. A comparação com o nulo bipartido tem limites: são só três
+réplicas, e a maior componente delas tem cerca de 14 mil vértices,
+contra 21 mil na rede real.
+
+\paragraph{Avaliar não é comprar.}
+Uma aresta registra que dois produtos têm avaliadores em comum. O
+CSV de 2018 não informa se a compra foi verificada, e quem avalia é
+uma fração dos compradores, enviesada para quem escreve muito. Por
+isso, a ``concentração de compra de consoles'' da Q4 é uma
+concentração de \emph{coavaliações}. Filtrar avaliações de compra
+verificada, campo que existe nos arquivos completos da coleção,
+aproximaria melhor a compra conjunta.
+
+\paragraph{O tratamento define a rede.}
+Os 456 usuários com mais de 50 produtos eram 0,03\% dos avaliadores,
+mas geravam 47,5\% das ocorrências de pares. Sem o corte T2, a
+projeção refletiria poucos colecionadores. A poda T5 decide quanto da
+rede sobra: com peso mínimo 1, 2 ou 3, a maior componente tem 98,8\%,
+58,1\% ou 33,2\% dos produtos (Tabela~\ref{tab:limiar}). Esperamos
+que a cauda pesada, a fragilidade a ataques e a homofilia resistam a
+esses cortes, porque dependem de diferenças de ordens de grandeza.
+Já \(C\), \(L\) e o número de componentes dependem diretamente do
+limiar. Ainda não repetimos as Partes I e III em outros limiares, e
+essa é a principal verificação pendente. A projeção também apaga o
+usuário: um par avaliado por alguém que avaliou dois produtos pesa o
+mesmo que um par avaliado por alguém que avaliou cinquenta. Ponderar
+cada contribuição por \(1/(k_u-1)\) reduziria o peso dos perfis
+amplos.
+
+\paragraph{O tempo foi apagado.}
+A rede une avaliações de 1997 a 2018. Uma aresta pode ligar produtos
+avaliados com anos de diferença, e isso muda a leitura da Q4: o par
+Xbox 360--Xbox One pode ser troca de geração, e o par PlayStation
+4--Xbox One, posse simultânea de rivais. Só uma análise por janelas
+de tempo separaria as duas leituras.
+
+\paragraph{Fonte e rótulos.}
+O G118 é o \emph{web-Amazon} do SNAP, cujos arquivos foram
+redirecionados para a coleção da UCSD. Usamos a edição de 2018,
+categoria \emph{Video Games}, e por isso os tamanhos não se comparam
+diretamente aos da planilha da disciplina. Os rótulos vêm de
+\emph{scraping}: 728 produtos da LCC têm restos de HTML no tipo, o
+próprio Wii está sem tipo, e a categoria \emph{Consoles} inclui
+pacotes com jogo. As frações por classe são, portanto, limites
+inferiores, e a homofilia se refere aos rótulos disponíveis.
+
+\paragraph{Pontes e hubs.}
+O ataque por intermediação é mais destrutivo até 20\% de remoção, e o
+ataque por grau passa a ser a partir de 22,5\%
+(Figura~\ref{fig:curvas}). A Q4 sugere a razão: a intermediação
+remove primeiro as pontes entre famílias, como o Wii, o DS Lite e
+\emph{Big Kahuna Reef}, e isola as famílias. Depois disso, o que
+fragmenta cada família são os seus hubs internos, que o ranking por
+grau alcança. Os dois rankings são fixos. Um ataque adaptativo, que
+recalcula a centralidade após cada remoção, tende a ser mais
+destrutivo e não foi medido.
+
+\paragraph{Tempos e lei de potência.}
+A bola de neve parte do maior hub, então os subgrafos pequenos são
+mais densos que a rede: \(m/n\) fica entre 30 e 38 nos subgrafos de
+1\,000 a 8\,000 vértices e cai para 15 na LCC. Isso entra nas
+inclinações de 1,01 a 1,16 dos algoritmos lineares, porque uma única
+constante para \(n+m\) supõe que vértice e aresta custam o mesmo. O
+Bellman--Ford para quando uma rodada não altera nenhuma distância;
+num grafo de diâmetro 13, isso ocorre depois de poucas rodadas
+\(k\), e o custo efetivo \(O(k\,m)\) explica a inclinação de 0,65
+contra \(nm\). O
+Floyd--Warshall só foi medido até 800 vértices. Na lei de potência, a
+lognormal ganhou da lei pura. Isso é coerente com a projeção, porque o
+grau de um produto acumula as vizinhanças de seus avaliadores, um
+processo mais próximo de multiplicativo que de ligação preferencial.
+
 \section{Conclusão}
 
-\paragraph{Resultados principais.}
 A rede de coavaliações tem poucos pares ligados diretamente, mas
-caminhos curtos dentro da maior componente. Produtos com o mesmo
-rótulo de plataforma aparecem juntos em 52,4\% das arestas,
-cerca de 4,5 vezes o esperado pela referência aleatória. O
-agrupamento elevado deve ser interpretado à luz da projeção em
-cliques, que também gerou alta clusterização no nulo bipartido.
-A cauda dos graus é pesada, e o contraste entre falhas aleatórias
-e ataques mostra quanto a conectividade depende de itens centrais.
+caminhos curtos dentro da maior componente. A cauda dos graus é
+pesada, sem ser uma lei de potência pura, e o contraste entre falhas
+aleatórias e ataques mostra quanto a conectividade depende de itens
+centrais. O agrupamento elevado vem da projeção em cliques, como
+mostrou o nulo bipartido, e não deve ser lido como propriedade da
+rede. O achado mais forte é a organização por família de console:
+55,2\% das arestas ficam dentro da família, contra 9,7\% ao acaso,
+e os consoles concentram ligações com outros aparelhos, inclusive de
+marcas rivais.
 
-\paragraph{Limitações.}
-
-Os filtros definem o recorte analisado. O limite por usuário reduz
-o efeito de perfis com muitas avaliações, o mínimo por produto
-favorece itens mais avaliados e a poda retira relações observadas
-uma única vez. Esses tratamentos podem alterar graus e distâncias.
-Além disso, uma aresta pode reunir avaliações feitas em anos
-diferentes pelo mesmo usuário.
-
-Algumas categorias do catálogo misturam plataformas e 20 vértices
-da LCC estão sem metadados. A proporção de arestas dentro de uma
-plataforma se refere aos rótulos disponíveis. Na análise dos tempos,
-a bola de neve privilegia regiões próximas ao maior hub, e os
-resultados dependem da máquina e dos subgrafos escolhidos.
-
-\paragraph{Trabalhos futuros.}
-Podemos repetir todas as medidas nos limiares alternativos e
-considerar janelas de tempo ou as notas. Na comparação de pequeno
-mundo, podemos ampliar as réplicas bipartidas, usar trocas que
-preservem exatamente os graus e controlar o tamanho da componente.
+Como próximos passos, propomos repetir as medidas nos limiares
+alternativos, filtrar compras verificadas, separar janelas de tempo
+para distinguir rivalidade de troca de geração e ampliar as réplicas
+do nulo bipartido, controlando o tamanho da componente.
 
 \begin{thebibliography}{9}
 \bibitem{snapamazon} Stanford Network Analysis Project.
