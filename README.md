@@ -71,7 +71,7 @@ No JupyterLab, abra os notebooks pelo diretório `notebooks/`, selecione o kerne
 | 3 | [Parte II — Algoritmos e tempos](notebooks/02_parte2.ipynb) | 7,5 min |
 | 4 | [Parte III — Pequeno mundo, lei de potência e robustez](notebooks/03_parte3.ipynb) | 9 min |
 
-Os tempos são aproximados e dependem da máquina. Os notebooks gravam tabelas em `results/` e figuras em `imagens/`. Para rodar os testes e os exemplos executáveis dos módulos, use `uv run pytest`.
+Os tempos são aproximados e dependem da máquina. Os notebooks gravam tabelas em `results/` e figuras em `imagens/`. O repositório inclui as [medições da Parte II](results/parte2_tempos.csv) e a [comparação dos limiares de coavaliação](results/parte3_sensibilidade.csv). Para rodar os testes e os exemplos executáveis dos módulos, use `uv run pytest`.
 
 ## 5. Arquivos da entrega
 

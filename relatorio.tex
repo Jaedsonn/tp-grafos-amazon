@@ -8,7 +8,7 @@
 \newcommand{\figura}[4]{%
   \begin{figure}[tbp]
     \centering
-    \includegraphics[width=\linewidth]{imagens/#1.pdf}
+    \includegraphics[width=.94\linewidth]{imagens/#1.pdf}
     \caption{#2}
     \Description{#3}
     \label{#4}
@@ -72,10 +72,13 @@ Logo,
 \[
   g=[32(43+1)]\bmod 129=1408\bmod 129=118.
 \]
-O índice G118 corresponde a \emph{web-Amazon}
-(\emph{Amazon reviews}) no catálogo da disciplina. O SNAP disponibiliza
-a descrição da coleção original \cite{snapamazon}. Para o experimento, usamos a versão de 2018 da UCSD
-\cite{amazon2018,ni2019}, no recorte \emph{Video Games}.
+A regra usa 129 quando o resto é zero. O índice G118 corresponde a \emph{web-Amazon}
+(\emph{Amazon reviews}) no catálogo da disciplina. Os links de dados
+na página do SNAP remetem ao aviso que encaminha para a coleção
+mantida pela UCSD \cite{snapamazon,acessosnap}. Dessa coleção
+usamos Amazon Review Data (2018), categoria \emph{Video Games}
+\cite{amazon2018,ni2019}. O recorte permite construir e analisar
+uma rede de coavaliação de jogos, consoles e acessórios.
 
 \section{Construção e tratamento da rede}
 
@@ -187,6 +190,35 @@ Os scripts, os notebooks e o README com as instruções estão
 no repositório do trabalho.
 \url{https://github.com/Jaedsonn/tp-grafos-amazon}.
 
+\subsection{Sensibilidade ao limiar de coavaliação}
+
+Repetimos a poda com pesos mínimos 1, 2 e 3, usando os mesmos
+36\,626 produtos que passaram por T3. A Tabela~\ref{tab:limiar}
+conta as arestas antes da extração da maior componente e considera
+cada vértice isolado uma componente de tamanho 1.
+
+\begin{table}[tbp]
+\centering
+\caption{Efeito do peso mínimo sobre a conectividade da projeção.}
+\label{tab:limiar}
+\small
+\begin{tabular}{rrrrr}
+\toprule
+Peso mín. & Arestas & Isolados & Vértices na LCC & \% na LCC \\
+\midrule
+1 & 2\,509\,461 & 421     & 36\,199 & 98,83 \\
+2 &   321\,127 & 14\,677 & 21\,284 & 58,11 \\
+3 &   123\,593 & 23\,373 & 12\,164 & 33,21 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Um avaliador em comum já liga quase todos os produtos por caminhos.
+Com dois, cada ligação tem apoio de mais de uma pessoa e a maior
+componente ainda cobre mais da metade dos produtos. Exigir três reduz
+essa cobertura para um terço. As medidas de pequeno mundo e robustez
+deste trabalho se referem à maior componente com peso mínimo dois.
+
 \section{Parte I -- Análise estrutural}
 
 O grau \(k_v\) conta os vizinhos de \(v\), enquanto a força soma
@@ -295,7 +327,10 @@ grau. A BFS encontra distâncias mínimas em saltos. A DFS explora um
 ramo antes de retornar aos vizinhos ainda por visitar. A LCC tem
 11\,996 vértices de grau ímpar. Como um grafo conexo precisa ter zero
 vértices ímpares para um circuito e zero ou dois para uma trilha
-euleriana, a LCC não admite nenhuma das duas.
+euleriana, a LCC não admite nenhuma das duas. Para verificar
+conexidade, a rotina reaproveita a BFS de distâncias. Ela percorre
+cada lista de vizinhos sem ordená-la: com a contagem de graus, o
+diagnóstico custa \(O(n+m)\).
 
 \paragraph{Caminhos mínimos.}
 Dijkstra usa uma fila de prioridade. Ele se aplica à LCC porque
@@ -324,15 +359,15 @@ fortemente conexas coincide com a de componentes conexas.
 \toprule
 Algoritmo & Custo teórico & \(n\) & \(m\) & Média & DP & IC 95\% & Inclinação \\
 \midrule
-BFS            & \(O(n+m)\)       & 21\,284 & 320\,742 & 0,0799 & 0,0238 & [0,0714; 0,0884] & 1,12 \\
-DFS            & \(O(n+m)\)       & 21\,284 & 320\,742 & 0,1168 & 0,0313 & [0,1056; 0,1280] & 1,08 \\
-Euler          & \(O(n+m)\)       & 21\,284 & 320\,742 & 0,1172 & 0,0148 & [0,1119; 0,1225] & 1,04 \\
-Tarjan         & \(O(n+m)\)       & 21\,284 & 320\,742 & 0,2788 & 0,0229 & [0,2706; 0,2870] & 1,07 \\
-Dijkstra       & \(O(m\log n)\)  & 21\,284 & 320\,742 & 0,6212 & 0,0387 & [0,6074; 0,6350] & 1,04 \\
-Prim           & \(O(m\log n)\)  & 21\,284 & 320\,742 & 0,9167 & 0,1681 & [0,8565; 0,9768] & 1,16 \\
-Kruskal        & \(O(m\log n)\)  & 21\,284 & 320\,742 & 0,3941 & 0,0466 & [0,3775; 0,4108] & 0,92 \\
-Bellman--Ford  & \(O(nm)\)        & 4\,000  & 136\,261 & 0,3619 & 0,0271 & [0,3522; 0,3716] & 0,60 \\
-Floyd--Warshall& \(O(n^3)\)       & 800    & 23\,209  & 0,8912 & 0,1143 & [0,8504; 0,9321] & 0,95 \\
+BFS & \(O(n+m)\) & 21\,284 & 320\,742 & 0,0844 & 0,0318 & [0,0730; 0,0958] & 1,16 \\
+DFS & \(O(n+m)\) & 21\,284 & 320\,742 & 0,0934 & 0,0149 & [0,0880; 0,0987] & 1,12 \\
+Euler & \(O(n+m)\) & 21\,284 & 320\,742 & 0,0620 & 0,0043 & [0,0605; 0,0635] & 1,05 \\
+Tarjan & \(O(n+m)\) & 21\,284 & 320\,742 & 0,2439 & 0,0272 & [0,2342; 0,2536] & 1,01 \\
+Dijkstra & \(O(m\log n)\) & 21\,284 & 320\,742 & 0,6410 & 0,0966 & [0,6065; 0,6756] & 1,07 \\
+Prim & \(O(m\log n)\) & 21\,284 & 320\,742 & 0,8629 & 0,1175 & [0,8209; 0,9049] & 1,15 \\
+Kruskal & \(O(m\log n)\) & 21\,284 & 320\,742 & 0,3432 & 0,0390 & [0,3292; 0,3571] & 0,93 \\
+Bellman--Ford & \(O(nm)\) & 4\,000 & 136\,261 & 0,3262 & 0,0260 & [0,3169; 0,3355] & 0,65 \\
+Floyd--Warshall & \(O(n^3)\) & 800 & 23\,209 & 0,6634 & 0,0332 & [0,6515; 0,6753] & 0,98 \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -361,20 +396,20 @@ vértices. Floyd--Warshall foi medido com 100, 200, 400 e 800.
 As medições foram feitas em Linux, com Intel Core 7 150U, cerca
 de 30 GB de RAM e Python 3.11.15.
 
-A BFS foi a execução mais rápida na LCC. Kruskal foi cerca de 2,3
-vezes mais rápido que Prim nessa execução, embora ambos tenham a
-mesma ordem teórica para grafos simples. As
-Figuras~\ref{fig:lineares} e~\ref{fig:heap} mostram inclinações
-próximas de um quando o eixo horizontal é o custo teórico, compatíveis
-com o crescimento esperado nos tamanhos avaliados.
+Na LCC, Kruskal foi 2,51 vezes mais rápido que Prim nesta
+execução, embora ambos tenham a mesma ordem teórica para grafos
+simples. A Figura~\ref{fig:lineares} mostra inclinações entre
+1,01 e 1,16 no eixo de custo \(n+m\). Em um teste separado na
+mesma LCC, retirar a ordenação dos vizinhos em Euler reduziu a
+mediana de 118,01 para 76,33~ms, com 30 chamadas por versão e
+o mesmo diagnóstico.
 
-Na Figura~\ref{fig:bf-floyd}, a inclinação de Bellman--Ford em
-relação a \(nm\) ficou em 0,60. A parada antecipada ajuda a explicar
-por que os tempos medidos cresceram mais devagar que o limite de pior
-caso. Floyd--Warshall ficou em 0,95 sobre \(n^3\), ou cerca de 2,86
-sobre \(n\), próximo do crescimento cúbico. Os dois últimos tempos
-da Tabela~\ref{tab:tempos} correspondem a entradas menores, portanto
-não servem para ordenar os nove algoritmos em uma mesma entrada.
+Na Figura~\ref{fig:bf-floyd}, Bellman--Ford obteve inclinação
+0,65 em relação a \(nm\). A parada antecipada
+ajuda a explicar por que os tempos cresceram mais devagar que
+o limite de pior caso. Floyd--Warshall ficou em
+2,95 em relação a \(n\), diante da previsão cúbica.
+Esses dois algoritmos foram medidos em entradas menores.
 
 \figura{parte2_escalabilidade_lineares}
   {Escalabilidade de BFS, DFS, Euler e Tarjan em relação a \(n+m\).}
@@ -451,12 +486,11 @@ componentes limitam a comparação com esse segundo modelo.
 
 Ajustamos \(\Pr(K=k)\propto k^{-\gamma}\) para
 \(k\geq k_{\min}\). Estimamos \(\gamma\) por máxima
-verossimilhança discreta. O limiar \(k_{\min}\) minimiza a
-distância de Kolmogorov--\allowbreak Smirnov (KS)
-\cite{clauset2009}.
-Nossa implementação obteve \(k_{\min}=46\) e
-\(\hat\gamma=2{,}1118\). O pacote \texttt{powerlaw} devolveu os
-mesmos valores.
+verossimilhança aproximada com correção para graus discretos.
+Minimizamos a distância KS (Kolmogorov--Smirnov) para escolher
+\(k_{\min}\) \cite{clauset2009}.
+Obtivemos \(k_{\min}=46\) e \(\hat\gamma=2{,}1118\).
+O pacote \texttt{powerlaw} retornou os mesmos valores.
 A cauda ajustada tem 3\,180 vértices (14,9\% da LCC), com
 distância KS de 0,0560 no cálculo próprio.
 
@@ -490,6 +524,10 @@ remanescentes na maior componente, o número de componentes, o
 caminho médio \(L\) em saltos na maior componente remanescente e
 a fração de isolados entre os vértices restantes.
 O cálculo de \(L\) utiliza BFS a partir de 100 origens amostradas.
+Para converter \(S\) em fração da rede original, multiplicamos por
+\((n-r)/n\). Nessa escala, a maior componente retém em média 93,9\%
+dos vértices sob falhas aleatórias, 84,2\% sob ataque por grau e
+82,1\% sob ataque por intermediação.
 
 \begin{table*}[tbp]
 \centering
@@ -510,7 +548,7 @@ D. Isolados (\%) & \(0{,}97\pm0{,}10\) & [0,93; 1,00] & 9,37 & 10,71 \\
 
 \begin{figure*}[tbp]
 \centering
-\includegraphics[width=.78\textwidth]{imagens/parte3_robustez_boxplot.pdf}
+\includegraphics[width=.72\textwidth]{imagens/parte3_robustez_boxplot.pdf}
 \caption{Distribuição das quatro métricas nas remoções aleatórias de 5\%, com referência aos ataques direcionados.}
 \Description{Os ataques reduzem a maior componente e aumentam as componentes, o caminho médio e os isolados.}
 \label{fig:robustez}
@@ -596,7 +634,7 @@ a bola de neve privilegia regiões próximas ao maior hub, e os
 resultados dependem da máquina e dos subgrafos escolhidos.
 
 \paragraph{Trabalhos futuros.}
-Podemos variar o limiar de coavaliação e
+Podemos repetir todas as medidas nos limiares alternativos e
 considerar janelas de tempo ou as notas. Na comparação de pequeno
 mundo, podemos ampliar as réplicas bipartidas, usar trocas que
 preservem exatamente os graus e controlar o tamanho da componente.
@@ -605,6 +643,10 @@ preservem exatamente os graus e controlar o tamanho da componente.
 \bibitem{snapamazon} Stanford Network Analysis Project.
 \emph{Web data: Amazon reviews}.
 \url{https://snap.stanford.edu/data/web-Amazon.html}.
+
+\bibitem{acessosnap} Stanford Network Analysis Project.
+\emph{Aviso de acesso à coleção de avaliações da Amazon}.
+\url{https://snap.stanford.edu/data/amazon/amazon_readme.txt}.
 
 \bibitem{amazon2018} Jianmo Ni. 2018.
 \emph{Amazon Review Data (2018)}. University of California San Diego.
