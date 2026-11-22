@@ -1,0 +1,639 @@
+\documentclass[sigconf,nonacm]{webmedia}
+\usepackage[brazil]{babel}
+
+\settopmatter{printacmref=false, printfolios=false}
+\setevent{none}
+\proceedingsDetails[Teoria dos Grafos]{Trabalho Prático de Teoria dos Grafos}{2026}{Salvador, Bahia}
+
+\newcommand{\figura}[4]{%
+  \begin{figure}[tbp]
+    \centering
+    \includegraphics[width=\linewidth]{imagens/#1.pdf}
+    \caption{#2}
+    \Description{#3}
+    \label{#4}
+  \end{figure}
+}
+
+\begin{document}
+
+\title[Rede de coavaliação da Amazon]{Rede de coavaliação de produtos de videogame da Amazon}
+\author{Jaedson Barbosa Macedo}
+\affiliation{%
+  \institution{Instituto de Computação, Universidade Federal da Bahia}
+  \city{Salvador}
+  \state{Bahia}
+  \country{Brasil}}
+\renewcommand{\shortauthors}{Macedo}
+
+\begin{abstract}
+Construímos uma rede de produtos da categoria \emph{Video Games}, do
+conjunto de dados Amazon Reviews 2018. Dois produtos são ligados quando
+pelo menos dois usuários avaliaram ambos. A maior componente conexa
+contém 21\,284 vértices e 320\,742 arestas. Medimos suas propriedades
+estruturais, implementamos algoritmos clássicos e comparamos seus
+tempos de execução. A rede apresentou indícios de pequeno mundo
+em relação a Erdős--Rényi, mas sua clusterização ficou abaixo da
+obtida ao projetar um bipartido aleatorizado. A distribuição de graus
+tem cauda pesada, com ajuste lognormal superior ao da lei de potência
+pura. Ao remover 5\% dos vértices ao acaso, 98,83\% dos remanescentes
+continuaram na maior componente, contra 86,47\% com remoção por
+intermediação. Também encontramos 52,4\% das arestas entre produtos
+com o mesmo rótulo de plataforma, ante 11,5\% na referência aleatória.
+\end{abstract}
+
+\keywords{teoria dos grafos, Amazon Reviews, coavaliação, pequeno mundo, robustez}
+\maketitle
+
+\section{Introdução}
+
+Uma avaliação na Amazon liga um usuário a um produto. Quando usuários
+avaliam vários produtos, podemos usar as avaliações em comum para
+construir uma rede em que os próprios produtos são os vértices. Neste
+trabalho, usamos essa ideia para investigar como se conectam os itens da
+categoria \emph{Video Games}, incluindo jogos, consoles e acessórios.
+
+Organizamos a análise em três partes. A primeira descreve a estrutura
+da rede. A segunda aplica algoritmos estudados na disciplina e compara
+a complexidade teórica com os tempos medidos. A terceira investiga o
+efeito de pequeno mundo, a distribuição dos graus, a robustez e a
+relação entre as arestas e os rótulos de plataforma.
+
+\section{Determinação do grafo}
+
+Seja \(S(M)\) a soma dos dígitos da matrícula \(M\) e
+\(U(M)\) o número formado pelos dois últimos dígitos. O
+índice é \(g=[S(M)(U(M)+1)]\bmod 129\). Para
+\(M=224215943\), temos \(U(M)=43\) e
+\[
+  S(M)=2+2+4+2+1+5+9+4+3=32.
+\]
+Logo,
+\[
+  g=[32(43+1)]\bmod 129=1408\bmod 129=118.
+\]
+O índice G118 corresponde a \emph{web-Amazon}
+(\emph{Amazon reviews}) no catálogo da disciplina. O SNAP disponibiliza
+a descrição da coleção original \cite{snapamazon}. Para o experimento, usamos a versão de 2018 da UCSD
+\cite{amazon2018,ni2019}, no recorte \emph{Video Games}.
+
+\section{Construção e tratamento da rede}
+
+\subsection{Dos dados ao grafo bipartido}
+
+Cada linha do CSV contém o identificador do produto (ASIN), o
+identificador do usuário, a nota e o instante da avaliação. A base
+bruta tem 2\,565\,349 linhas, 1\,540\,618 usuários e 71\,982
+produtos, com registros de novembro de 1997 a outubro de 2018.
+Usamos a avaliação como sinal de interação entre usuário e produto. A nota e o instante foram descartados para construir uma rede
+estática, deixando de fora a satisfação do usuário e a evolução da
+rede ao longo do tempo.
+
+Sejam \(U\) o conjunto de usuários e \(P\) o de produtos.
+A matriz de incidência \(B\in\{0,1\}^{|U|\times|P|}\) tem
+\(B_{up}=1\) quando \(u\) avaliou \(p\). Assim, no grafo bipartido
+\(\mathcal B=(U\cup P,E_B)\), cada aresta liga um usuário a um
+produto. Denotamos por \(N(u)\) os produtos avaliados por \(u\) e
+por \(N(p)\) os usuários que avaliaram \(p\). Seus tamanhos são
+\(k_u\) e \(k_p\), respectivamente.
+
+\subsection{Projeção por coavaliação}
+
+Projetamos \(\mathcal B\) sobre \(P\). Para produtos distintos
+\(p\) e \(q\), a aresta \(\{p,q\}\) existe se o peso abaixo é
+positivo:
+\[
+  w(p,q)=|N(p)\cap N(q)|=(B^{\mathsf T}B)_{pq}.
+\]
+Cada usuário avalia um conjunto \(N(u)\), que gera um clique na
+projeção. Quando outro usuário gera o mesmo par, somamos um ao peso.
+Por exemplo, se \(a\) avalia \(\{1,2,3\}\), \(b\) avalia
+\(\{2,3\}\) e \(c\) avalia \(\{3,4\}\), obtemos as arestas
+\(\{1,2\}\), \(\{1,3\}\), \(\{2,3\}\) e \(\{3,4\}\).
+Apenas \(\{2,3\}\) tem peso dois. O grau projetado de um produto
+é limitado por \(\sum_{u\in N(p)}(k_u-1)\), pois dois avaliadores
+podem gerar vizinhos repetidos. Isso ajuda a entender como produtos
+populares se tornam vértices muito conectados.
+
+\subsection{Tratamento dos dados}
+
+Aplicamos os tratamentos abaixo uma vez e na ordem apresentada.
+
+\begin{enumerate}
+  \item \textbf{T1 -- Deduplicação.} Mantivemos uma ocorrência de
+  cada par usuário--produto para que o mesmo usuário contribua uma
+  única vez para cada par projetado.
+  \item \textbf{T2 -- Limite por usuário.} Excluímos usuários com
+  mais de 50 produtos avaliados. Cada usuário produz
+  \(\binom{k_u}{2}\) pares, o que dá peso desproporcional a
+  perfis com muitos itens e aumenta o custo da projeção.
+  \item \textbf{T3 -- Mínimo por produto.} Após T2, mantivemos produtos
+  com pelo menos cinco avaliadores. Usuários que ficaram com só
+  um produto continuam no bipartido e geram zero pares.
+  \item \textbf{T4 -- Projeção.} Construímos as arestas da parte
+  triangular superior de \(B^{\mathsf T}B\), excluindo a diagonal.
+  O resultado é um grafo simples, não direcionado e ponderado.
+  \item \textbf{T5 -- Poda.} Mantivemos as arestas com \(w\geq2\),
+  de modo que cada ligação resulte de pelo menos dois usuários
+  distintos. Chamamos o grafo filtrado de \emph{backbone}.
+  \item \textbf{T6 -- Maior componente.} Usamos BFS para contar as
+  componentes do \emph{backbone}, incluindo os produtos isolados
+  que passaram por T3. Extraímos a maior componente conexa (LCC)
+  para as medidas que exigem conectividade.
+  \item \textbf{T7 -- Custo de uma aresta.} Para caminhos mínimos
+  ponderados e árvores geradoras, usamos \(d(p,q)=1/w(p,q)\).
+  Mais avaliadores em comum reduzem esse custo.
+  As medidas topológicas de distância usam número de saltos.
+\end{enumerate}
+
+\begin{table}[tbp]
+\centering
+\caption{Funil de preparação dos dados. Em T4 e T5, a coluna de produtos conta apenas os incidentes a uma aresta.}
+\label{tab:funil}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Etapa & Usuários & Produtos & Linhas/arestas \\
+\midrule
+Bruto           & 1\,540\,618 & 71\,982 & 2\,565\,349 \\
+T1 Deduplicação & 1\,540\,618 & 71\,982 & 2\,489\,395 \\
+T2 Limite       & 1\,540\,162 & 71\,363 & 2\,449\,047 \\
+T3 Mínimo       & 1\,508\,526 & 36\,626 & 2\,382\,072 \\
+T4 Projeção     & --         & 36\,205 & 2\,509\,461 \\
+T5 Poda         & --         & 21\,949 & 321\,127 \\
+T6 LCC          & --         & 21\,284 & 320\,742 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A Tabela~\ref{tab:funil} mostra a remoção de 75\,954 linhas
+repetidas e de 456 usuários acima do limite. Esses usuários são
+0,03\% do total, mas, antes do corte, geravam 47,5\% das
+ocorrências de pares na projeção, contando cada contribuição. O
+limiar de cinco avaliadores deixou 36\,626 produtos, dos quais
+421 ficaram sem vizinhos já na projeção. Depois de projetar os
+dados, 87,2\% das arestas tinham apenas um avaliador em comum e
+foram descartadas em T5. A LCC reteve 97,0\% dos produtos com ao
+menos uma ligação no \emph{backbone} e 99,9\% de suas arestas.
+
+Mantivemos consoles e acessórios, pois também fazem parte das
+coavaliações da categoria. Título, plataforma e tipo foram usados
+para descrever os produtos. A construção do grafo dependeu dos pares
+usuário--produto.
+
+Usamos Python para as análises e a semente 42 nos sorteios.
+Os scripts, os notebooks e o README com as instruções estão
+no repositório do trabalho.
+\url{https://github.com/Jaedsonn/tp-grafos-amazon}.
+
+\section{Parte I -- Análise estrutural}
+
+O grau \(k_v\) conta os vizinhos de \(v\), enquanto a força soma
+os pesos de suas arestas. A densidade é \(2m/[n(n-1)]\).
+Contamos os triângulos incidentes a cada vértice, \(t_v\), por
+interseções de vizinhanças. Então \(T=\sum_v t_v/3\) e a
+clusterização local é \(C_v=2t_v/[k_v(k_v-1)]\), tomando
+\(C_v=0\) quando \(k_v<2\). A clusterização média \(C\) é a
+média dos \(C_v\) na LCC.
+
+\begin{table}[tbp]
+\centering
+\caption{Medidas estruturais da maior componente conexa.}
+\label{tab:estrutural}
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+Medida & Valor \\
+\midrule
+Vértices & 21\,284 \\
+Arestas & 320\,742 \\
+Grau mínimo / máximo / médio & 1 / 1\,274 / 30,1393 \\
+Força média & 100,0335 \\
+Densidade & \(1{,}4161\times10^{-3}\) \\
+Diâmetro / raio (saltos) & 13 / 7 \\
+Comprimento médio exato (saltos) & 3,7131 \\
+Comprimento médio estimado & 3,6929 \\
+IC 95\% da estimativa & [3,6539; 3,7318] \\
+Clusterização média & 0,32453 \\
+Triângulos & 4\,389\,728 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Apenas 0,142\% dos pares possíveis são vizinhos, mas a distância
+média na LCC é de 3,71 saltos. Assim, poucos passos bastam para
+ligar produtos que não têm uma aresta direta. Cada aresta retida
+tem, em média, 3,32 usuários em comum. O diâmetro é a maior distância mínima, 13. O raio é 7, a
+menor distância máxima a partir de um vértice. A estimativa por BFS
+a partir de mil origens inclui o valor exato no seu intervalo, como
+mostra a Tabela~\ref{tab:estrutural}.
+
+\begin{table}[tbp]
+\centering
+\caption{Tamanhos das 14\,976 componentes do \emph{backbone}, antes da extração da LCC.}
+\label{tab:componentes}
+\begin{tabular}{@{}rrrrrrrr@{}}
+\toprule
+Tamanho & 1 & 2 & 3 & 4 & 5 & 6 & 21\,284 \\
+\midrule
+Quantidade & 14\,677 & 251 & 34 & 6 & 5 & 2 & 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A Tabela~\ref{tab:componentes} evidencia a diferença entre a LCC
+e o restante do \emph{backbone}. Há 14\,677 produtos isolados e
+298 componentes com dois a seis produtos. A LCC reúne 58,1\% dos
+36\,626 produtos que entraram na projeção, incluindo os isolados.
+
+\begin{table}[tbp]
+\centering
+\caption{Status e método das medidas obrigatórias.}
+\label{tab:status}
+\small
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}p{.37\columnwidth}lp{.41\columnwidth}@{}}
+\toprule
+Medida & Feita? & Método \\
+\midrule
+Vértices, arestas, graus e densidade & Sim & Contagens e fórmulas exatas \\
+Distribuição de graus & Sim & Histograma e CCDF \\
+Componentes e tamanhos & Sim & BFS no \emph{backbone} \\
+Diâmetro e raio & Sim & Exatos, via igraph \\
+Comprimento médio & Sim & Exato, via igraph, e estimado por BFS \\
+Clusterização e triângulos & Sim & Código próprio, conferido com igraph \\
+Visualização & Sim & Subgrafo induzido pelos 300 maiores graus \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Como resume a Tabela~\ref{tab:status}, usamos o igraph nos cálculos
+exatos que exigem percorrer a LCC a partir de cada origem. A
+Figura~\ref{fig:graus} mostra a frequência de cada grau e sua
+distribuição acumulada complementar, \(\Pr(K\geq k)\). A maior
+parte dos produtos tem poucos vizinhos, enquanto alguns chegam a
+centenas. A Figura~\ref{fig:nucleo} permite ver grupos por plataforma
+na região mais conectada. O recorte privilegia deliberadamente os
+vértices de alto grau e deixa de fora a periferia da rede.
+
+\figura{parte1_distribuicao_graus}
+  {Histograma e distribuição acumulada complementar dos graus, em escala log-log.}
+  {Dois gráficos mostram frequências e probabilidades que caem à medida que o grau aumenta.}
+  {fig:graus}
+\figura{parte1_nucleo_300}
+  {Subgrafo induzido pelos 300 maiores graus. A cor indica a plataforma e o tamanho do vértice acompanha o grau.}
+  {Grupos coloridos de produtos aparecem no núcleo. Os vértices de maior grau recebem rótulos.}
+  {fig:nucleo}
+
+\section{Parte II -- Algoritmos da disciplina}
+
+\paragraph{Buscas e Eulerianidade.}
+Implementamos BFS com fila e DFS com pilha. Ambas alcançaram toda
+a LCC a partir do controle sem fio do Xbox 360, o vértice de maior
+grau. A BFS encontra distâncias mínimas em saltos. A DFS explora um
+ramo antes de retornar aos vizinhos ainda por visitar. A LCC tem
+11\,996 vértices de grau ímpar. Como um grafo conexo precisa ter zero
+vértices ímpares para um circuito e zero ou dois para uma trilha
+euleriana, a LCC não admite nenhuma das duas.
+
+\paragraph{Caminhos mínimos.}
+Dijkstra usa uma fila de prioridade. Ele se aplica à LCC porque
+os custos \(1/w\) são positivos. Bellman--Ford relaxa as arestas
+até que uma passagem deixe de alterar as distâncias ou se atinja o
+limite de iterações. Sua capacidade de lidar com arestas negativas
+é desnecessária neste grafo. Floyd--Warshall calcula as distâncias
+entre todos os pares, admitindo um vértice intermediário por vez.
+A cada iteração, o NumPy atualiza a matriz de distâncias.
+
+\paragraph{Pontes e articulações.}
+Usamos Tarjan com DFS iterativa. Para cada subárvore, registramos
+o menor tempo de descoberta alcançável. Encontramos 4\,248
+pontes, das quais 3\,951 ligam folhas e 297 ficam no interior da
+rede, além de 3\,032 articulações. A maior parte das pontes
+desconecta uma folha, o que ajuda a explicar a frequência de isolados
+sob ataque. Como a rede é não direcionada, a noção de componentes
+fortemente conexas coincide com a de componentes conexas.
+
+\begin{table*}[tbp]
+\centering
+\caption{Maior entrada medida por algoritmo. Média, desvio padrão (DP) e IC de 95\% em segundos. A última coluna compara o tempo observado ao custo teórico em escala logarítmica.}
+\label{tab:tempos}
+\small
+\begin{tabular}{@{}lcrrrrcr@{}}
+\toprule
+Algoritmo & Custo teórico & \(n\) & \(m\) & Média & DP & IC 95\% & Inclinação \\
+\midrule
+BFS            & \(O(n+m)\)       & 21\,284 & 320\,742 & 0,0799 & 0,0238 & [0,0714; 0,0884] & 1,12 \\
+DFS            & \(O(n+m)\)       & 21\,284 & 320\,742 & 0,1168 & 0,0313 & [0,1056; 0,1280] & 1,08 \\
+Euler          & \(O(n+m)\)       & 21\,284 & 320\,742 & 0,1172 & 0,0148 & [0,1119; 0,1225] & 1,04 \\
+Tarjan         & \(O(n+m)\)       & 21\,284 & 320\,742 & 0,2788 & 0,0229 & [0,2706; 0,2870] & 1,07 \\
+Dijkstra       & \(O(m\log n)\)  & 21\,284 & 320\,742 & 0,6212 & 0,0387 & [0,6074; 0,6350] & 1,04 \\
+Prim           & \(O(m\log n)\)  & 21\,284 & 320\,742 & 0,9167 & 0,1681 & [0,8565; 0,9768] & 1,16 \\
+Kruskal        & \(O(m\log n)\)  & 21\,284 & 320\,742 & 0,3941 & 0,0466 & [0,3775; 0,4108] & 0,92 \\
+Bellman--Ford  & \(O(nm)\)        & 4\,000  & 136\,261 & 0,3619 & 0,0271 & [0,3522; 0,3716] & 0,60 \\
+Floyd--Warshall& \(O(n^3)\)       & 800    & 23\,209  & 0,8912 & 0,1143 & [0,8504; 0,9321] & 0,95 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\paragraph{Árvore geradora mínima.}
+Prim expande a árvore pela aresta de menor custo disponível na
+fronteira. Kruskal ordena as arestas pelo custo e usa conjuntos
+disjuntos para evitar ciclos. Tanto minimizar \(1/w\) quanto
+maximizar \(w\) faz os algoritmos processarem primeiro as ligações
+mais fortes. Obtivemos árvores com 21\,283 arestas e custo
+6\,876,12. Cerca de 40,2\% de suas arestas têm peso dois, sinal
+de que ligações próximas ao limiar ainda são necessárias para
+conectar a rede inteira. A validação com NetworkX comparou o custo
+das árvores, pois empates podem produzir árvores diferentes com
+o mesmo custo. Os dez critérios de validação da Parte II passaram.
+
+\paragraph{Tempos e escalabilidade.}
+Usamos dois aquecimentos e 30 repetições por configuração, com
+\texttt{perf\_counter}. O IC de 95\% da média foi calculado como
+\(\bar t\pm 1{,}96s/\sqrt{30}\), em que \(s\) é o desvio padrão.
+Os subgrafos são induzidos por amostragem em bola de neve, iniciada
+no vértice de maior grau. Usamos \(n=1\,000,2\,000,4\,000,8\,000\)
+e a LCC para os sete primeiros algoritmos da Tabela~\ref{tab:tempos}.
+Bellman--Ford foi limitado a 500, 1\,000, 2\,000 e 4\,000
+vértices. Floyd--Warshall foi medido com 100, 200, 400 e 800.
+As medições foram feitas em Linux, com Intel Core 7 150U, cerca
+de 30 GB de RAM e Python 3.11.15.
+
+A BFS foi a execução mais rápida na LCC. Kruskal foi cerca de 2,3
+vezes mais rápido que Prim nessa execução, embora ambos tenham a
+mesma ordem teórica para grafos simples. As
+Figuras~\ref{fig:lineares} e~\ref{fig:heap} mostram inclinações
+próximas de um quando o eixo horizontal é o custo teórico, compatíveis
+com o crescimento esperado nos tamanhos avaliados.
+
+Na Figura~\ref{fig:bf-floyd}, a inclinação de Bellman--Ford em
+relação a \(nm\) ficou em 0,60. A parada antecipada ajuda a explicar
+por que os tempos medidos cresceram mais devagar que o limite de pior
+caso. Floyd--Warshall ficou em 0,95 sobre \(n^3\), ou cerca de 2,86
+sobre \(n\), próximo do crescimento cúbico. Os dois últimos tempos
+da Tabela~\ref{tab:tempos} correspondem a entradas menores, portanto
+não servem para ordenar os nove algoritmos em uma mesma entrada.
+
+\figura{parte2_escalabilidade_lineares}
+  {Escalabilidade de BFS, DFS, Euler e Tarjan em relação a \(n+m\).}
+  {As quatro curvas sobem com inclinações próximas de um.}
+  {fig:lineares}
+\figura{parte2_escalabilidade_heap}
+  {Escalabilidade de Dijkstra, Prim e Kruskal em relação a \(m\log n\).}
+  {As curvas sobem com inclinações próximas de um. Prim tem tempos maiores no conjunto medido.}
+  {fig:heap}
+\figura{parte2_escalabilidade_bellman_floyd}
+  {Escalabilidade de Bellman--Ford em relação a \(nm\) e Floyd--Warshall em relação a \(n^3\).}
+  {A curva de Bellman--Ford cresce mais lentamente que o custo teórico, e a de Floyd--Warshall acompanha o custo cúbico.}
+  {fig:bf-floyd}
+
+\section{Parte III -- Propriedades da rede}
+
+\subsection{Propriedade de pequeno mundo}
+
+Uma rede de pequeno mundo combina agrupamento local alto com
+distâncias médias próximas às de um grafo aleatório
+\cite{watts1998}. Implementamos a contagem de triângulos, o
+cálculo de \(C\), a geração de Erdős--Rényi \(G(n,m)\) e a
+estimativa de \(L\) por BFS com 100 origens sorteadas por grafo.
+Esse protocolo é comum a todos os grafos desta comparação.
+A estimativa na rede real, 3,7779, usa menos origens que a da Parte I.
+
+Comparamos a LCC real a dez grafos Erdős--Rényi com os mesmos
+\(n\) e \(m\) e às aproximações
+\(C_{\mathrm{ER}}\approx\langle k\rangle/(n-1)\) e
+\(L_{\mathrm{ER}}\approx\ln n/\ln\langle k\rangle\). Também
+calculamos \(\sigma=(C/C_{\mathrm{ref}})/(L/L_{\mathrm{ref}})\)
+\cite{humphries2008}.
+
+Cada usuário já gera um clique antes da poda, mesmo quando as
+incidências do bipartido são aleatórias \cite{newman2001}.
+Por isso, geramos três réplicas de um nulo bipartido a partir
+dos pares tratados em T1--T3. Permutamos a coluna de produtos,
+preservando o número de pontas de cada usuário e de cada produto
+antes de deduplicar. O descarte de cerca de 0,03\% dos pares
+repetidos torna essa preservação aproximada no grafo simples.
+Em seguida, repetimos T4--T6. As componentes aleatórias resultantes
+tiveram, em média, cerca de 14\,162 vértices e 227\,680 arestas.
+
+\begin{table}[tbp]
+\centering
+\caption{Pequeno mundo na rede real e nos modelos de referência. As réplicas são resumidas pela média.}
+\label{tab:pequeno-mundo}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Grafo ou referência & \(C\) & \(L\) & \(\sigma\) \\
+\midrule
+Rede real & 0,32453 & 3,7779 & -- \\
+ER analítico & 0,00142 & 2,9261 & 177,50 \\
+ER simulado (10) & 0,00142 & 3,2353 & 196,27 \\
+Nulo bipartido (3) & 0,35891 & 2,8911 & 0,69 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Contra Erdős--Rényi simulado, \(C\) foi 229 vezes maior e \(L\)
+foi apenas 1,17 vez maior, o que indica pequeno mundo nessa
+comparação (Tabela~\ref{tab:pequeno-mundo}). Isso se traduz em
+grupos locais de produtos ligados por caminhos curtos. Na prática,
+é possível alcançar uma parte distante da rede com poucas etapas
+de coavaliação. O nulo bipartido, porém, produziu até mais
+clusterização que o grafo real e obteve distâncias médias menores.
+A projeção já é suficiente para gerar clusterização elevada nesse
+experimento. As três réplicas e a diferença de tamanho entre as
+componentes limitam a comparação com esse segundo modelo.
+
+\subsection{Distribuição de graus e lei de potência}
+
+Ajustamos \(\Pr(K=k)\propto k^{-\gamma}\) para
+\(k\geq k_{\min}\). Estimamos \(\gamma\) por máxima
+verossimilhança discreta. O limiar \(k_{\min}\) minimiza a
+distância de Kolmogorov--\allowbreak Smirnov (KS)
+\cite{clauset2009}.
+Nossa implementação obteve \(k_{\min}=46\) e
+\(\hat\gamma=2{,}1118\). O pacote \texttt{powerlaw} devolveu os
+mesmos valores.
+A cauda ajustada tem 3\,180 vértices (14,9\% da LCC), com
+distância KS de 0,0560 no cálculo próprio.
+
+\figura{parte3_lei_potencia}
+  {Distribuição acumulada complementar dos graus e ajuste de lei de potência na cauda.}
+  {A distribuição empírica é comparada à linha ajustada a partir do grau 46.}
+  {fig:potencia}
+
+Na Figura~\ref{fig:potencia}, a cauda decai lentamente e apresenta
+desvios da reta ajustada. A comparação por razão logarítmica de
+verossimilhanças favoreceu a lognormal em relação à lei de
+potência pura (\(R=-102{,}1\), \(p=2{,}2\times10^{-20}\)).
+A lei de potência truncada também obteve maior verossimilhança
+(\(R=-120{,}9\)), mas seu ajuste emitiu um aviso de parâmetro
+próximo ao limite numérico. A comparação com a lognormal sustenta a
+conclusão principal: há uma cauda pesada, e a lei de potência pura
+é insuficiente para descrevê-la neste conjunto de dados.
+
+\subsection{Robustez a falhas e ataques}
+
+Partimos da LCC e retiramos \(r=\lceil0{,}05n\rceil=1\,065\)
+vértices, junto com suas arestas incidentes. Fizemos 30 remoções
+aleatórias uniformes, sem reposição em cada repetição. Nos ataques,
+removemos os primeiros \(r\) vértices de dois rankings fixos,
+um por grau e outro por intermediação. Esta última mede a
+participação de um vértice em caminhos mínimos entre outros pares. Foi
+calculada de forma exata com igraph e distância em saltos.
+
+Depois da remoção, medimos \(S\), a fração dos vértices
+remanescentes na maior componente, o número de componentes, o
+caminho médio \(L\) em saltos na maior componente remanescente e
+a fração de isolados entre os vértices restantes.
+O cálculo de \(L\) utiliza BFS a partir de 100 origens amostradas.
+
+\begin{table*}[tbp]
+\centering
+\caption{Robustez após remoção de 5\% dos vértices. O desvio padrão e o IC resumem as 30 repetições aleatórias. Cada ataque direcionado tem um resultado por ranking.}
+\label{tab:robustez}
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Métrica & Aleatória (média \(\pm\) DP) & IC 95\% & Grau & Intermediação \\
+\midrule
+A. \(S\) (\%) & \(98{,}83\pm0{,}11\) & [98,79; 98,87] & 88,64 & 86,47 \\
+B. Componentes & \(213{,}1\pm20{,}8\) & [205,65; 220,55] & 2\,055 & 2\,381 \\
+C. \(L\) (saltos) & \(3{,}7159\pm0{,}0577\) & [3,6953; 3,7366] & 5,0567 & 5,2847 \\
+D. Isolados (\%) & \(0{,}97\pm0{,}10\) & [0,93; 1,00] & 9,37 & 10,71 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{figure*}[tbp]
+\centering
+\includegraphics[width=.78\textwidth]{imagens/parte3_robustez_boxplot.pdf}
+\caption{Distribuição das quatro métricas nas remoções aleatórias de 5\%, com referência aos ataques direcionados.}
+\Description{Os ataques reduzem a maior componente e aumentam as componentes, o caminho médio e os isolados.}
+\label{fig:robustez}
+\end{figure*}
+\figura{parte3_curvas_ataque}
+  {Fração \(S(f)\) dos vértices restantes na maior componente, em função da fração removida \(f\).}
+  {A curva aleatória cai pouco. As curvas de ataque dirigido caem mais e trocam de ordem acima de 20 por cento.}
+  {fig:curvas}
+
+A remoção aleatória mantém quase todos os remanescentes na mesma
+componente e pouco altera os caminhos. Já o ataque por
+intermediação cria cerca de 11 vezes mais componentes e aumenta
+\(L\) para 5,28 saltos. A Tabela~\ref{tab:robustez} e a
+Figura~\ref{fig:robustez} mostram que a LCC resiste bem a
+falhas aleatórias de 5\%, mas depende de uma parcela pequena
+de vértices centrais.
+
+A Figura~\ref{fig:curvas} estende os ataques até remover 30\%
+da rede. Para a curva aleatória, usamos uma única ordem aleatória
+e seus prefixos. O ataque por intermediação reduz mais \(S(f)\) até
+20\% de remoção. O ataque por grau passa a reduzir mais a partir
+de 22,5\%, o próximo ponto medido. O desempenho relativo dos
+rankings, ambos calculados antes das remoções, depende da fração
+retirada.
+
+\subsection{Plataformas e produtos centrais}
+
+A plataforma aparece na topologia mesmo tendo sido usada apenas
+para rotular produtos. Na LCC, 52,4\% das arestas ligam produtos
+com o mesmo rótulo. Se as pontas forem ligadas ao acaso mantendo
+a proporção de cada categoria entre elas, a fração esperada é
+\(\sum_a[s_a/(2m)]^2=11{,}5\%\), em que \(s_a\) é o
+número de pontas com rótulo \(a\). A proporção observada é 4,5
+vezes a esperada nessa referência.
+
+O controle sem fio do Xbox 360 tem o maior grau, com 1\,274
+vizinhos, mas fica em quarto lugar em intermediação. O Wii tem
+1\,210 vizinhos e lidera em intermediação. O jogo
+\emph{Big Kahuna Reef} fica em segundo lugar nesse critério e
+fora dos 12 primeiros por grau. Assim, ter muitos vizinhos e
+participar de muitos caminhos mínimos são papéis diferentes na rede.
+
+As remoções mostram o efeito desses papéis na conectividade. O
+ataque por intermediação separou um grupo de seis produtos
+rotulados como Xbox 360. O ataque por grau separou um grupo de
+dez produtos sob o rótulo \emph{Retro Gaming \& Microconsoles}.
+Esses casos ilustram como grupos de produtos com o mesmo rótulo
+podem ficar isolados quando vértices centrais são removidos.
+
+\subsection{Comparação com modelos clássicos}
+
+A clusterização de Erdős--Rényi ficou muito abaixo da observada.
+Barabási--Albert gera hubs e uma lei de potência, mas o ajuste
+lognormal foi superior nos nossos dados. Watts--Strogatz também
+combina agrupamento local e caminhos curtos. Na rede estudada,
+a projeção em cliques explica parte do agrupamento.
+
+\section{Conclusão}
+
+\paragraph{Resultados principais.}
+A rede de coavaliações tem poucos pares ligados diretamente, mas
+caminhos curtos dentro da maior componente. Produtos com o mesmo
+rótulo de plataforma aparecem juntos em 52,4\% das arestas,
+cerca de 4,5 vezes o esperado pela referência aleatória. O
+agrupamento elevado deve ser interpretado à luz da projeção em
+cliques, que também gerou alta clusterização no nulo bipartido.
+A cauda dos graus é pesada, e o contraste entre falhas aleatórias
+e ataques mostra quanto a conectividade depende de itens centrais.
+
+\paragraph{Limitações.}
+
+Os filtros definem o recorte analisado. O limite por usuário reduz
+o efeito de perfis com muitas avaliações, o mínimo por produto
+favorece itens mais avaliados e a poda retira relações observadas
+uma única vez. Esses tratamentos podem alterar graus e distâncias.
+Além disso, uma aresta pode reunir avaliações feitas em anos
+diferentes pelo mesmo usuário.
+
+Algumas categorias do catálogo misturam plataformas e 20 vértices
+da LCC estão sem metadados. A proporção de arestas dentro de uma
+plataforma se refere aos rótulos disponíveis. Na análise dos tempos,
+a bola de neve privilegia regiões próximas ao maior hub, e os
+resultados dependem da máquina e dos subgrafos escolhidos.
+
+\paragraph{Trabalhos futuros.}
+Podemos variar o limiar de coavaliação e
+considerar janelas de tempo ou as notas. Na comparação de pequeno
+mundo, podemos ampliar as réplicas bipartidas, usar trocas que
+preservem exatamente os graus e controlar o tamanho da componente.
+
+\begin{thebibliography}{8}
+\bibitem{snapamazon} Stanford Network Analysis Project.
+\emph{Web data: Amazon reviews}.
+\url{https://snap.stanford.edu/data/web-Amazon.html}.
+
+\bibitem{amazon2018} Jianmo Ni. 2018.
+\emph{Amazon Review Data (2018)}. University of California San Diego.
+\url{https://cseweb.ucsd.edu/~jmcauley/datasets/amazon_v2/}.
+
+\bibitem{ni2019} Jianmo Ni, Jiacheng Li e Julian McAuley. 2019.
+Justifying Recommendations using Distantly-Labeled Reviews and Fine-Grained Aspects.
+Em \emph{EMNLP-IJCNLP}, 188--197.
+\url{https://doi.org/10.18653/v1/D19-1018}.
+
+\bibitem{watts1998} Duncan J. Watts e Steven H. Strogatz. 1998.
+Collective dynamics of 'small-world' networks.
+\emph{Nature} 393, 440--442.
+\url{https://doi.org/10.1038/30918}.
+
+\bibitem{newman2001} M. E. J. Newman, Steven H. Strogatz e Duncan J. Watts. 2001.
+Random graphs with arbitrary degree distributions and their applications.
+\emph{Physical Review E} 64, 026118.
+\url{https://doi.org/10.1103/PhysRevE.64.026118}.
+
+\bibitem{humphries2008} Mark D. Humphries e Kevin Gurney. 2008.
+Network 'Small-World-Ness': A Quantitative Method for Determining Canonical Network Equivalence.
+\emph{PLoS ONE} 3(4), e0002051.
+\url{https://doi.org/10.1371/journal.pone.0002051}.
+
+\bibitem{clauset2009} Aaron Clauset, Cosma Rohilla Shalizi e M. E. J. Newman. 2009.
+Power-Law Distributions in Empirical Data.
+\emph{SIAM Review} 51(4), 661--703.
+\url{https://doi.org/10.1137/070710111}.
+\end{thebibliography}
+
+\end{document}
