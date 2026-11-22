@@ -1,4 +1,4 @@
-# Modelagem de grafo para rede de grafos de video games
+# Rede de coavaliação de produtos de videogame da Amazon
 
 Este projeto analisa como os jogos de videogame se conectam entre si com base no comportamento dos jogadores. Abaixo, explicamos de forma simples como transformamos uma lista de avaliações em um mapa completo do universo dos games.
 

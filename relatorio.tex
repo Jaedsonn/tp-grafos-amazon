@@ -443,20 +443,26 @@ e o restante do \emph{backbone}. Há 14\,677 produtos isolados e
 
 \begin{table}[tbp]
 \centering
-\caption{Status e método das medidas obrigatórias.}
+\caption{Status e método das 13 medidas obrigatórias da Parte I.}
 \label{tab:status}
 \small
 \setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{@{}p{.37\columnwidth}lp{.41\columnwidth}@{}}
+\begin{tabular}{@{}p{.40\columnwidth}lp{.38\columnwidth}@{}}
 \toprule
 Medida & Feita? & Método \\
 \midrule
-Vértices, arestas, graus e densidade & Sim & Contagens e fórmulas exatas \\
+Número de vértices & Sim & Contagem exata \\
+Número de arestas & Sim & Contagem exata \\
+Grau mínimo, máximo e médio & Sim & Código próprio \\
 Distribuição de graus & Sim & Histograma e CCDF \\
-Componentes e tamanhos & Sim & BFS no \emph{backbone} \\
-Diâmetro e raio & Sim & Exatos, BFS própria de cada vértice \\
-Comprimento médio & Sim & Exato (BFS própria) e estimado \\
-Clusterização e triângulos & Sim & Código próprio, conferido com igraph \\
+Densidade & Sim & \(2m/[n(n-1)]\) \\
+Número de componentes & Sim & BFS no \emph{backbone} \\
+Tamanho de cada componente & Sim & BFS no \emph{backbone} \\
+Diâmetro & Sim & Exato, BFS própria de cada vértice \\
+Raio & Sim & Exato, BFS própria de cada vértice \\
+Comprimento médio dos caminhos & Sim & Exato (BFS própria) e estimado \\
+Clusterização média & Sim & Código próprio, conferido com igraph \\
+Número de triângulos & Sim & Código próprio, conferido com igraph \\
 Visualização & Sim & Subgrafo induzido pelos 300 maiores graus \\
 \bottomrule
 \end{tabular}
@@ -583,9 +589,14 @@ o mesmo diagnóstico.
 Na Figura~\ref{fig:bf-floyd}, Bellman--Ford obteve inclinação
 0,65 em relação a \(nm\). A parada antecipada
 ajuda a explicar por que os tempos cresceram mais devagar que
-o limite de pior caso. Floyd--Warshall ficou em
-2,95 em relação a \(n\), diante da previsão cúbica.
-Esses dois algoritmos foram medidos em entradas menores.
+o limite de pior caso. Floyd--Warshall obteve inclinação
+0,98 em relação a \(n^3\), de acordo com a previsão cúbica.
+Esses dois algoritmos foram medidos em entradas menores porque
+seriam caros demais na LCC: a matriz de distâncias do
+Floyd--Warshall ocuparia \(21\,284^2\times8\)~B \(\approx3{,}6\)~GB
+e, extrapolando por \(n^3\) os 0,66~s medidos com 800 vértices,
+levaria cerca de 3,5~h; o pior caso do Bellman--Ford chega a
+\(nm\approx6{,}8\times10^9\) relaxações.
 
 \figura{parte2_escalabilidade_lineares}
   {Escalabilidade de BFS, DFS, Euler e Tarjan em relação a \(n+m\).}
@@ -656,7 +667,10 @@ grupos locais de produtos ligados por caminhos curtos. Na prática,
 de coavaliação. O nulo bipartido, porém, produziu até mais
 clusterização que o grafo real e obteve distâncias médias menores.
 A projeção já é suficiente para gerar clusterização elevada nesse
-experimento. As três réplicas e a diferença de tamanho entre as
+experimento. Entre as três réplicas, o IC de 95\% (t-Student, dois
+graus de liberdade) é [0,351; 0,367] para \(C\) e [2,83; 2,95] para
+\(L\): o \(C\) real fica abaixo do intervalo, e o \(L\) real, acima.
+As três réplicas e a diferença de tamanho entre as
 componentes limitam a comparação com esse segundo modelo.
 
 Em resposta à pergunta da Parte III, a rede tem a assinatura
@@ -734,7 +748,7 @@ D. Isolados (\%) & \(0{,}97\pm0{,}10\) & [0,93; 1,00] & 9,37 & 10,71 \\
 \begin{figure*}[tbp]
 \centering
 \includegraphics[width=.72\textwidth]{imagens/parte3_robustez_boxplot.pdf}
-\caption{Distribuição das quatro métricas nas 30 remoções aleatórias de 5\% (caixas). O triângulo verde marca a média, e o ponto preto com barra, a média \(\pm\) desvio padrão. Os X marcam os ataques por grau e por intermediação (\emph{betweenness}).}
+\caption{Distribuição das quatro métricas nas 30 remoções aleatórias de 5\% (caixas). O triângulo verde marca a média, e o ponto preto com barra, a média \(\pm\) desvio padrão. Os X marcam os ataques por grau e por intermediação (\emph{betweenness}). As métricas A e D aparecem como frações de 0 a 1; na Tabela~\ref{tab:robustez}, em porcentagem.}
 \Description{Os ataques, marcados por X, reduzem a maior componente e aumentam as componentes, o caminho médio e os isolados em relação às caixas da remoção aleatória.}
 \label{fig:robustez}
 \end{figure*}
@@ -925,8 +939,8 @@ outra coisa: a rede real tem \(L\) maior que o dele (3,78 contra
 produziriam, e a homofilia por família da Seção~\ref{sec:consoles}
 explica por quê: os produtos ficam presos à sua família de console.
 O mesmo cuidado vale para a homofilia, cuja referência analítica
-(11,5\%, plataforma bruta) e cuja permutação de rótulos (15,3\%, mesmo
-rótulo) diferem porque
+(11,5\%, plataforma bruta) e cuja permutação de rótulos (média de
+15,3\% e máximo de 16,4\%, mesmo rótulo) diferem porque
 preservam coisas diferentes. Nos dois casos, o observado fica muito
 acima. A comparação com o nulo bipartido tem limites: são só três
 réplicas, e a maior componente delas tem cerca de 14 mil vértices,
