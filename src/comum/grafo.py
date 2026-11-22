@@ -1,7 +1,23 @@
 from collections import Counter, deque
 from collections.abc import Iterable
 
-from src.tipos import Adjacencia, ArestaJogos, PesosArestas
+from src.comum.tipos import Adjacencia, AdjacenciaPonderada, ArestaJogos, PesosArestas
+
+
+def montar_adjacencia_ponderada(pesos: PesosArestas) -> AdjacenciaPonderada:
+    """
+    :param pesos: arestas {(p, q): w}
+    :return: adjacência com distância d = 1/w (T7): mais usuários em comum, mais perto
+
+    Exemplo:
+        >>> montar_adjacencia_ponderada({("1", "2"): 4})
+        {'1': {'2': 0.25}, '2': {'1': 0.25}}
+    """
+    adjacencia: AdjacenciaPonderada = {}
+    for (p, q), peso in pesos.items():
+        adjacencia.setdefault(p, {})[q] = 1 / peso
+        adjacencia.setdefault(q, {})[p] = 1 / peso
+    return adjacencia
 
 
 def montar_adjacencia(arestas: Iterable[ArestaJogos]) -> Adjacencia:

@@ -2,8 +2,8 @@ import csv
 from collections.abc import Iterable
 from typing import TextIO
 
-from src.leitura import CATEGORIA_AUSENTE
-from src.tipos import EtapaFunil, Jogo, PesosArestas
+from src.etl.leitura import CATEGORIA_AUSENTE
+from src.comum.tipos import EtapaFunil, Jogo, PesosArestas
 
 
 def escrever_tabela(

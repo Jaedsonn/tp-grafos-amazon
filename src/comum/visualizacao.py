@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 from matplotlib.figure import Figure
 
-from src.tipos import Jogo, PesosArestas
+from src.comum.tipos import Jogo, PesosArestas
 
 MAX_PLATAFORMAS_NA_LEGENDA: int = 8
 COR_OUTRAS: str = "#B4B2A9"
@@ -103,4 +103,28 @@ def desenhar_subgrafo(
         eixo.scatter([], [], c=cor, label=plataforma)
     eixo.legend(loc="lower left", fontsize=8, frameon=False)
     eixo.set_axis_off()
+    return figura
+
+
+def plotar_escalabilidade(
+    series: dict[str, list[tuple[float, float, float]]], rotulo_custo: str
+) -> Figure:
+    """
+    :param series: algoritmo -> pontos (custo teórico, tempo médio, meia largura do IC)
+    :param rotulo_custo: texto do eixo x, ex.: "n + m"
+    :return: figura log-log do tempo contra o custo; uma reta de inclinação 1 confirma a complexidade
+
+    Exemplo:
+        figura = plotar_escalabilidade({"BFS": [(1e3, 1e-3, 1e-5)]}, "n + m")
+    """
+    figura, eixo = plt.subplots(figsize=(6, 4))
+    for algoritmo, pontos in series.items():
+        custos, medias, margens = zip(*pontos)
+        eixo.errorbar(
+            custos, medias, yerr=margens, marker="o", ms=3, capsize=2, label=algoritmo
+        )
+    eixo.set(xscale="log", yscale="log", xlabel=rotulo_custo, ylabel="tempo médio (s)")
+    eixo.grid(True, which="major", alpha=0.3)
+    eixo.legend(fontsize=8, frameon=False)
+    figura.tight_layout()
     return figura

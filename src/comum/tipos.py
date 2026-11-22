@@ -4,6 +4,7 @@ ParAvaliacao = tuple[str, str]
 ArestaJogos = tuple[str, str]
 Adjacencia = dict[str, set[str]]
 PesosArestas = dict[ArestaJogos, int]
+AdjacenciaPonderada = dict[str, dict[str, float]]
 
 
 @dataclass(frozen=True)

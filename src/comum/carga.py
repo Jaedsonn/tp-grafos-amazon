@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TextIO
 
-from src.grafo import montar_adjacencia
-from src.tipos import Adjacencia, Jogo, PesosArestas
+from src.comum.grafo import montar_adjacencia
+from src.comum.tipos import Adjacencia, Jogo, PesosArestas
 
 
 @dataclass(frozen=True)
