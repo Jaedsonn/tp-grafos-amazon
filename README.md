@@ -3,7 +3,9 @@
 Este projeto analisa como os jogos de videogame se conectam entre si com base no comportamento dos jogadores. Abaixo, explicamos de forma simples como transformamos uma lista de avaliações em um mapa completo do universo dos games.
 
 ## 1. O nosso Dataset (Os Dados)
-Nosso ponto de partida é uma base de dados de avaliações (reviews) da Amazon. É basicamente um histórico de consumo enorme. Cada linha da tabela registra quatro informações: **quem** é o usuário, **qual** produto ele avaliou, **qual nota** deu e **quando** isso aconteceu.
+O grafo atribuído é o **G118 — web-Amazon**. Na página [web-Amazon do SNAP](https://snap.stanford.edu/data/web-Amazon.html), os links dos arquivos remetem ao [aviso de acesso](https://snap.stanford.edu/data/amazon/amazon_readme.txt), que encaminha para a [página da coleção na UCSD](https://nijianmo.github.io/amazon/index.html). Usamos **Amazon Review Data (2018), categoria Video Games**, com 2.565.349 avaliações. A categoria permite estudar coavaliações de jogos, consoles e acessórios em um recorte viável para o trabalho.
+
+Cada linha registra **quem** avaliou, **qual produto**, **qual nota** e **quando**. Para construir o grafo estático, usamos apenas o par usuário–produto.
 
 ## 2. Tipos de Grafos: Usuário-Jogo vs. Jogo-Jogo
 Para transformar essa tabela em uma rede, pensamos em duas abordagens diferentes:
