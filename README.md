@@ -2,6 +2,56 @@
 
 Este projeto analisa como os jogos de videogame se conectam entre si com base no comportamento dos jogadores. Abaixo, explicamos de forma simples como transformamos uma lista de avaliações em um mapa completo do universo dos games.
 
+## Grafo atribuído
+
+Trabalho prático **Analisando Grafos do SNAP**, Teoria dos Grafos, IC/UFBA. Autor: Jaedson Barbosa Macedo, matrícula **224215943**.
+
+O índice do grafo é $f(M) = (S(M) \times (U(M) + 1)) \bmod 129$, em que $S(M)$ é a soma dos dígitos e $U(M)$ os dois últimos dígitos da matrícula (se o resto for 0, usa-se 129):
+
+| Passo | Valor |
+| --- | --- |
+| Soma dos dígitos $S$ | 2 + 2 + 4 + 2 + 1 + 5 + 9 + 4 + 3 = **32** |
+| Dois últimos dígitos $U$ | **43** |
+| $S \times (U + 1)$ | 32 × 44 = 1.408 |
+| $1.408 \bmod 129$ | 1.408 − 10 × 129 = **118** |
+
+Grafo atribuído: **G118 — web-Amazon**.
+
+## Execução rápida
+
+```bash
+uv sync
+uv run python scripts/run_all.py
+```
+
+O `run_all` roda os testes, o pré-processamento (se os arquivos brutos estiverem em `data/raw/`) e os cinco notebooks, na ordem, gravando tabelas em `results/` e figuras em `imagens/`. Sem os dados brutos, tudo roda com os arquivos de `data/processado/`. Para não remedir os tempos da Parte II, use `--sem-parte2`; para escolher notebooks, `--notebooks 04 05`.
+
+## Checklist do enunciado
+
+| Requisito | Onde está |
+| --- | --- |
+| Cálculo de determinação do grafo | Seção acima; relatório, Seção 2 |
+| Código, dados tratados e README | `src/`, `notebooks/`, `scripts/run_all.py`; [`data/processado/`](data/processado/); este arquivo |
+| Descrição do grafo original e tratamento | Relatório, Seção 3; `src/etl/`; [`funil.csv`](data/processado/funil.csv) |
+| Metodologia | Relatório, Seção 4 |
+| **Parte I** — vértices, arestas, graus, distribuição, densidade | [`01_parte1`](notebooks/01_parte1.ipynb); `src/parte1/topologia.py`; [`parte1_medidas.csv`](results/parte1_medidas.csv) |
+| Parte I — componentes e tamanhos | [`componentes.csv`](data/processado/componentes.csv); `src/comum/grafo.py` |
+| Parte I — diâmetro, raio, caminho médio (exatos, código próprio) | `src/parte1/distancias.py`, conferido com igraph |
+| Parte I — clusterização, triângulos, visualização | `src/parte1/topologia.py`; [`parte1_nucleo_300`](imagens/parte1_nucleo_300.png) |
+| Parte I — tabela "computado ou não" | [`parte1_status.csv`](results/parte1_status.csv); relatório, tabela de status da Parte I |
+| **Parte II** — BFS, DFS, Euler | [`02_parte2`](notebooks/02_parte2.ipynb); `src/comum/grafo.py`, `src/parte2/buscas.py` |
+| Parte II — Dijkstra, Bellman–Ford, Floyd–Warshall | `src/parte2/caminhos_minimos.py` |
+| Parte II — Tarjan (componentes fortes; pontes e articulações) | `src/parte2/buscas.py` |
+| Parte II — Prim e Kruskal | `src/parte2/arvore_geradora.py` |
+| Parte II — complexidade teórica e observada; média, DP e IC (Z se n ≥ 30, t se n < 30) | `src/parte2/desempenho.py`, `src/comum/estatistica.py`; [`parte2_resumo.csv`](results/parte2_resumo.csv), [`parte2_tempos.csv`](results/parte2_tempos.csv) |
+| **Parte III, Q1** — small-world, código próprio, contra ER e nulo bipartido | [`03_parte3`](notebooks/03_parte3.ipynb); `src/parte3/pequeno_mundo.py`; [`parte3_pequeno_mundo.csv`](results/parte3_pequeno_mundo.csv) |
+| Q2 — lei de potência (MLE, KS, razão de verossimilhança) | `src/parte3/lei_potencia.py`; [`parte3_lei_potencia.csv`](results/parte3_lei_potencia.csv) |
+| Q3 — robustez aleatória e direcionada, métricas A–D, boxplot | `src/parte3/robustez.py`; [`parte3_robustez.csv`](results/parte3_robustez.csv) |
+| Q4 — descoberta mais interessante (mapa dos consoles) | [`04_consoles`](notebooks/04_consoles.ipynb); `src/parte3/consoles.py`; `results/parte3_consoles_*.csv` |
+| Q5 (extra) — ER, BA e WS simulados com código próprio | [`05_modelos`](notebooks/05_modelos.ipynb); `src/parte3/modelos.py`; [`parte3_modelos.csv`](results/parte3_modelos.csv) |
+| Testes | `tests/` (integração contra NetworkX) e exemplos executáveis em `src/`: `uv run pytest` |
+| Relatório no template WebMedia, PDF com a matrícula | [`relatorio.tex`](relatorio.tex), [`224215943.pdf`](224215943.pdf) |
+
 ## 1. O nosso Dataset (Os Dados)
 O grafo atribuído é o **G118 — web-Amazon**. Na página [web-Amazon do SNAP](https://snap.stanford.edu/data/web-Amazon.html), os links dos arquivos remetem ao [aviso de acesso](https://snap.stanford.edu/data/amazon/amazon_readme.txt), que encaminha para a [página da coleção na UCSD](https://nijianmo.github.io/amazon/index.html). Usamos **Amazon Review Data (2018), categoria Video Games**, com 2.565.349 avaliações. A categoria permite estudar coavaliações de jogos, consoles e acessórios em um recorte viável para o trabalho.
 
@@ -40,7 +90,7 @@ O projeto usa Python 3.11. As versões das dependências estão em `uv.lock`.
 
 ### Rodar com os dados tratados
 
-Depois de clonar o repositório e executar `uv sync`, rode `uv run pytest` para conferir os exemplos do código. As Partes I e II já podem ser executadas com os arquivos versionados em `data/processado/`. Para abrir os notebooks, rode `uv run jupyter lab` na raiz do projeto.
+Depois de clonar o repositório e executar `uv sync`, rode `uv run pytest` para conferir os testes de `tests/` e os exemplos do código. Todos os notebooks rodam com os arquivos versionados em `data/processado/`. Para abri-los, rode `uv run jupyter lab` na raiz do projeto.
 
 ### Obter os dados brutos
 
@@ -51,7 +101,7 @@ Na página [Amazon Review Data (2018)](https://cseweb.ucsd.edu/~jmcauley/dataset
 | `Video_Games.csv` | [Ratings only, com 2.565.349 avaliações](https://mcauleylab.ucsd.edu/public_datasets/data/amazon_v2/categoryFilesSmall/Video_Games.csv) |
 | `meta_Video_Games.json.gz` | [Metadata da categoria](https://mcauleylab.ucsd.edu/public_datasets/data/amazon_v2/metaFiles2/meta_Video_Games.json.gz) |
 
-Os dados brutos ficam fora da entrega. Para consultar os resultados ou executar as partes I e II, use os arquivos já incluídos em `data/processado/`. A Parte III volta a ler `Video_Games.csv` para construir o modelo nulo bipartido. Os dois arquivos brutos são necessários para refazer o pré-processamento completo.
+Os dados brutos ficam fora da entrega. Eles só são necessários para refazer o pré-processamento e duas etapas da Parte III, o nulo bipartido e a sensibilidade ao limiar. Sem eles, o notebook 03 lê os resumos dessas duas etapas em [`parte3_nulo_bipartido.csv`](results/parte3_nulo_bipartido.csv) e [`parte3_sensibilidade.csv`](results/parte3_sensibilidade.csv), gravados pela última execução com os dados brutos, e recalcula todo o resto.
 
 ### Regenerar os dados tratados e executar os notebooks
 
@@ -67,10 +117,11 @@ No JupyterLab, abra os notebooks pelo diretório `notebooks/`, selecione o kerne
 | Ordem | Etapa | Tempo observado |
 | --- | --- | ---: |
 | 1 | Pré-processamento com `uv run python -m src.etl.pipeline` | 14 s |
-| 2 | [Parte I — Topologia](notebooks/01_parte1.ipynb) | 4 min |
+| 2 | [Parte I — Topologia](notebooks/01_parte1.ipynb) | 8 min |
 | 3 | [Parte II — Algoritmos e tempos](notebooks/02_parte2.ipynb) | 7,5 min |
-| 4 | [Parte III — Pequeno mundo, lei de potência e robustez](notebooks/03_parte3.ipynb) | 9 min |
-| 5 | [Parte III, Q4 — Concentração em consoles](notebooks/04_consoles.ipynb) | 1 min |
+| 4 | [Parte III — Pequeno mundo, lei de potência e robustez](notebooks/03_parte3.ipynb) | 14 min |
+| 5 | [Parte III, Q4 — Concentração em consoles](notebooks/04_consoles.ipynb) | 2 min |
+| 6 | [Parte III, Q5 — Modelos clássicos](notebooks/05_modelos.ipynb) | 6 min |
 
 Os tempos são aproximados e dependem da máquina. Os notebooks gravam tabelas em `results/` e figuras em `imagens/`. O repositório inclui as [medições da Parte II](results/parte2_tempos.csv) a [comparação dos limiares de coavaliação](results/parte3_sensibilidade.csv) e o [resumo da análise de consoles](results/parte3_consoles_resumo.csv). O notebook de consoles usa só os arquivos de `data/processado/` e roda sem os dados brutos. Para rodar os testes e os exemplos executáveis dos módulos, use `uv run pytest`.
 
