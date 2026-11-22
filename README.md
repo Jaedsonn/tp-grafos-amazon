@@ -36,6 +36,10 @@ uv sync
 
 O projeto usa Python 3.11. As versões das dependências estão em `uv.lock`.
 
+### Rodar com os dados tratados
+
+Depois de clonar o repositório e executar `uv sync`, rode `uv run pytest` para conferir os exemplos do código. As Partes I e II já podem ser executadas com os arquivos versionados em `data/processado/`. Para abrir os notebooks, rode `uv run jupyter lab` na raiz do projeto.
+
 ### Obter os dados brutos
 
 Na página [Amazon Review Data (2018)](https://cseweb.ucsd.edu/~jmcauley/datasets/amazon_v2/), selecione a categoria **Video Games**. Baixe os dois arquivos abaixo e salve-os em `data/raw/` com os nomes indicados. Mantenha os metadados compactados.

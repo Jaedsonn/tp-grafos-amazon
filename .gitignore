@@ -1,6 +1,11 @@
 /data/raw/*
 *.md
+!/README.md
 .venv/
 __pycache__/
 .pytest_cache/
 /data/processado/*
+!/data/processado/arestas_lcc.csv.gz
+!/data/processado/componentes.csv
+!/data/processado/funil.csv
+!/data/processado/jogos_lcc.csv
