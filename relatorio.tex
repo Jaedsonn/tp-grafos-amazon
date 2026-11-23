@@ -89,18 +89,16 @@ O índice G118 corresponde a \emph{web-Amazon}
 \paragraph{O grafo original.}
 O \emph{web-Amazon} reúne 34\,686\,770 avaliações de 6\,643\,669
 usuários sobre 2\,441\,053 produtos, de junho de 1995 a março de 2013,
-distribuídas em arquivos por categoria, entre eles \emph{Video Games}
-\cite{snapamazon}. Cada avaliação liga um usuário a um produto e traz
+distribuídas em arquivos por categoria, entre eles \emph{Video Games}. Cada avaliação liga um usuário a um produto e traz
 nota, texto e instante. Os dados formam, portanto, um grafo bipartido
 usuário--produto, temporal e sem arestas diretas entre produtos.
 
 \paragraph{Troca da base de dados.}
 O grafo analisado não vem do arquivo listado na planilha da
 disciplina. Os links de dados da página \emph{web-Amazon} do SNAP
-remetem a um aviso que encaminha para a coleção mantida pela UCSD
-\cite{snapamazon,acessosnap}. Dessa coleção usamos a edição
+remetem a um aviso que encaminha para a coleção mantida pela UCSD. Dessa coleção usamos a edição
 Amazon Review Data (2018), restrita à categoria \emph{Video Games}
-\cite{amazon2018,ni2019}. A troca tem duas consequências: o período
+\cite{hou2024}. A troca tem duas consequências: o período
 passa a ser 1997--2018, e o recorte cobre uma única categoria. Por
 isso, os tamanhos deste trabalho não se comparam aos da planilha.
 Escolhemos \emph{Video Games} porque é um recorte viável que forma
@@ -322,7 +320,7 @@ grafos com o mesmo protocolo, 100 origens sorteadas. Resumimos as
 comparações por \(\sigma=(C/C_{\mathrm{ref}})/(L/L_{\mathrm{ref}})\).
 
 \paragraph{Lei de potência.}
-Seguindo o Apêndice B e Clauset et al.~\cite{clauset2009}, estimamos \(\gamma\)
+Seguindo o Apêndice B~\cite{barabasi2016}, estimamos \(\gamma\)
 por máxima verossimilhança discreta na cauda \(k\geq k_{\min}\),
 escolhemos \(k_{\min}\) pela menor distância de Kolmogorov--Smirnov e
 comparamos a lei de potência com a lognormal pela razão de
@@ -351,7 +349,7 @@ matriz de mistura \(e_{ab}\), a fração das pontas de aresta que ligam
 os rótulos \(a\) e \(b\), com \(a_a=\sum_b e_{ab}\), e a
 assortatividade categórica
 \(r=(\sum_a e_{aa}-\sum_a a_a^2)/(1-\sum_a a_a^2)\)
-\cite{newman2003}. A razão \(e_{ab}/(a_a a_b)\) compara o observado
+\cite{barabasi2016}. A razão \(e_{ab}/(a_a a_b)\) compara o observado
 com o esperado ao acaso. A significância da homofilia vem de um teste
 de permutação: os rótulos são embaralhados entre os vértices 1\,000
 vezes, mantendo a topologia e a quantidade de vértices de cada
@@ -561,7 +559,7 @@ das árvores, pois empates podem produzir árvores diferentes com
 o mesmo custo. Os dez critérios de validação da Parte II passaram.
 
 \paragraph{Complexidade teórica.}
-Com lista de adjacência, BFS, DFS, Tarjan e a verificação de
+Seguindo as análises clássicas~\cite{cormen2022}, com lista de adjacência, BFS, DFS, Tarjan e a verificação de
 Eulerianidade visitam cada vértice e cada aresta uma vez:
 \(O(n+m)\). Dijkstra, Prim e Kruskal custam \(O(m\log n)\): os dois
 primeiros com fila de prioridade, o terceiro pela ordenação das
@@ -619,7 +617,7 @@ levaria cerca de 3,5~h; o pior caso do Bellman--Ford chega a
 
 Uma rede de pequeno mundo combina agrupamento local alto com
 distâncias médias próximas às de um grafo aleatório
-\cite{watts1998}. Implementamos a contagem de triângulos, o
+\cite{barabasi2016}. Implementamos a contagem de triângulos, o
 cálculo de \(C\), a geração de Erdős--Rényi \(G(n,m)\) e a
 estimativa de \(L\) por BFS com 100 origens sorteadas por grafo.
 Esse protocolo é comum a todos os grafos desta comparação.
@@ -629,12 +627,11 @@ da Parte I.
 Comparamos a LCC real a dez grafos Erdős--Rényi com os mesmos
 \(n\) e \(m\) e às aproximações
 \(C_{\mathrm{ER}}\approx\langle k\rangle/(n-1)\) e
-\(L_{\mathrm{ER}}\approx\ln n/\ln\langle k\rangle\). Também
-calculamos \(\sigma=(C/C_{\mathrm{ref}})/(L/L_{\mathrm{ref}})\)
-\cite{humphries2008}.
+\(L_{\mathrm{ER}}\approx\ln n/\ln\langle k\rangle\)~\cite{barabasi2016}. Também
+calculamos \(\sigma=(C/C_{\mathrm{ref}})/(L/L_{\mathrm{ref}})\).
 
 Cada usuário já gera um clique antes da poda, mesmo quando as
-incidências do bipartido são aleatórias \cite{newman2001}.
+incidências do bipartido são aleatórias.
 Por isso, geramos três réplicas de um nulo bipartido a partir
 dos pares tratados em T1--T3. Permutamos a coluna de produtos,
 preservando o número de pontas de cada usuário e de cada produto
@@ -691,7 +688,7 @@ Ajustamos \(\Pr(K=k)\propto k^{-\gamma}\) para
 \(k\geq k_{\min}\). Estimamos \(\gamma\) por máxima
 verossimilhança aproximada com correção para graus discretos.
 Minimizamos a distância KS (Kolmogorov--Smirnov) para escolher
-\(k_{\min}\) \cite{clauset2009}.
+\(k_{\min}\) \cite{barabasi2016}.
 Obtivemos \(k_{\min}=46\) e \(\hat\gamma=2{,}1118\).
 O pacote \texttt{powerlaw} retornou os mesmos valores.
 A cauda ajustada tem 3\,180 vértices (14,9\% da LCC), com
@@ -1075,48 +1072,17 @@ alternativos, filtrar compras verificadas, separar janelas de tempo
 para distinguir rivalidade de troca de geração e ampliar as réplicas
 do nulo bipartido, controlando o tamanho da componente.
 
-\begin{thebibliography}{9}
-\bibitem{snapamazon} Stanford Network Analysis Project.
-\emph{Web data: Amazon reviews}.
-\url{https://snap.stanford.edu/data/web-Amazon.html}.
+\begin{thebibliography}{3}
+\bibitem{hou2024} HOU, Yupeng et al. \emph{Bridging Language and Items for
+Retrieval and Recommendation}. arXiv preprint, arXiv:2403.03952, 2024.
+Disponível em: \url{https://arxiv.org/abs/2403.03952}. Acesso em: jun. 2025.
 
-\bibitem{acessosnap} Stanford Network Analysis Project.
-\emph{Aviso de acesso à coleção de avaliações da Amazon}.
-\url{https://snap.stanford.edu/data/amazon/amazon_readme.txt}.
+\bibitem{cormen2022} CORMEN, Thomas H. et al. \emph{Introduction to
+Algorithms}. 4. ed. Cambridge: MIT Press, 2022.
 
-\bibitem{amazon2018} Jianmo Ni. 2018.
-\emph{Amazon Review Data (2018)}. University of California San Diego.
-\url{https://cseweb.ucsd.edu/~jmcauley/datasets/amazon_v2/}.
-
-\bibitem{ni2019} Jianmo Ni, Jiacheng Li e Julian McAuley. 2019.
-Justifying Recommendations using Distantly-Labeled Reviews and Fine-Grained Aspects.
-Em \emph{EMNLP-IJCNLP}, 188--197.
-\url{https://doi.org/10.18653/v1/D19-1018}.
-
-\bibitem{watts1998} Duncan J. Watts e Steven H. Strogatz. 1998.
-Collective dynamics of 'small-world' networks.
-\emph{Nature} 393, 440--442.
-\url{https://doi.org/10.1038/30918}.
-
-\bibitem{newman2001} M. E. J. Newman, Steven H. Strogatz e Duncan J. Watts. 2001.
-Random graphs with arbitrary degree distributions and their applications.
-\emph{Physical Review E} 64, 026118.
-\url{https://doi.org/10.1103/PhysRevE.64.026118}.
-
-\bibitem{humphries2008} Mark D. Humphries e Kevin Gurney. 2008.
-Network 'Small-World-Ness': A Quantitative Method for Determining Canonical Network Equivalence.
-\emph{PLoS ONE} 3(4), e0002051.
-\url{https://doi.org/10.1371/journal.pone.0002051}.
-
-\bibitem{newman2003} M. E. J. Newman. 2003.
-Mixing patterns in networks.
-\emph{Physical Review E} 67, 026126.
-\url{https://doi.org/10.1103/PhysRevE.67.026126}.
-
-\bibitem{clauset2009} Aaron Clauset, Cosma Rohilla Shalizi e M. E. J. Newman. 2009.
-Power-Law Distributions in Empirical Data.
-\emph{SIAM Review} 51(4), 661--703.
-\url{https://doi.org/10.1137/070710111}.
+\bibitem{barabasi2016} BARABÁSI, Albert-László. \emph{Network Science}.
+Cambridge: Cambridge University Press, 2016. Disponível em:
+\url{http://networksciencebook.com}. Acesso em: jun. 2025.
 \end{thebibliography}
 
 \end{document}
