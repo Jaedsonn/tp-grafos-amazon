@@ -300,7 +300,7 @@ def desenhar_panelas(
     posicoes = nx.spring_layout(grafo, weight="weight", seed=semente, iterations=300)
     presentes = sorted(
         {familias[v] for v in grafo},
-        key=lambda f: -sum(familias[v] == f for v in grafo),
+        key=lambda f: (-sum(familias[v] == f for v in grafo), f),
     )
     escuras = [c for i, c in enumerate(plt.get_cmap("tab10").colors) if i != 7]
     claras = [
