@@ -89,14 +89,14 @@ O índice G118 corresponde a \emph{web-Amazon}
 \paragraph{O grafo original.}
 O \emph{web-Amazon} reúne 34\,686\,770 avaliações de 6\,643\,669
 usuários sobre 2\,441\,053 produtos, de junho de 1995 a março de 2013,
-distribuídas em arquivos por categoria, entre eles \emph{Video Games}. Cada avaliação liga um usuário a um produto e traz
+distribuídas em arquivos por categoria, entre eles \emph{Video Games}\footnote{\url{https://snap.stanford.edu/data/web-Amazon.html}}. Cada avaliação liga um usuário a um produto e traz
 nota, texto e instante. Os dados formam, portanto, um grafo bipartido
 usuário--produto, temporal e sem arestas diretas entre produtos.
 
 \paragraph{Troca da base de dados.}
 O grafo analisado não vem do arquivo listado na planilha da
 disciplina. Os links de dados da página \emph{web-Amazon} do SNAP
-remetem a um aviso que encaminha para a coleção mantida pela UCSD. Dessa coleção usamos a edição
+remetem a um aviso\footnote{\url{https://snap.stanford.edu/data/amazon/amazon_readme.txt}} que encaminha para a coleção mantida pela UCSD. Dessa coleção usamos a edição
 Amazon Review Data (2018), restrita à categoria \emph{Video Games}
 \cite{hou2024}. A troca tem duas consequências: o período
 passa a ser 1997--2018, e o recorte cobre uma única categoria. Por
@@ -321,7 +321,7 @@ comparações por \(\sigma=(C/C_{\mathrm{ref}})/(L/L_{\mathrm{ref}})\).
 
 \paragraph{Lei de potência.}
 Seguindo o Apêndice B~\cite{barabasi2016}, estimamos \(\gamma\)
-por máxima verossimilhança discreta na cauda \(k\geq k_{\min}\),
+por máxima verossimilhança aproximada com correção para graus discretos na cauda \(k\geq k_{\min}\),
 escolhemos \(k_{\min}\) pela menor distância de Kolmogorov--Smirnov e
 comparamos a lei de potência com a lognormal pela razão de
 verossimilhanças. Uma reta em escala log-log
@@ -1075,14 +1075,14 @@ do nulo bipartido, controlando o tamanho da componente.
 \begin{thebibliography}{3}
 \bibitem{hou2024} HOU, Yupeng et al. \emph{Bridging Language and Items for
 Retrieval and Recommendation}. arXiv preprint, arXiv:2403.03952, 2024.
-Disponível em: \url{https://arxiv.org/abs/2403.03952}. Acesso em: jun. 2025.
+Disponível em: \url{https://arxiv.org/abs/2403.03952}. Acesso em: nov. 2026.
 
 \bibitem{cormen2022} CORMEN, Thomas H. et al. \emph{Introduction to
 Algorithms}. 4. ed. Cambridge: MIT Press, 2022.
 
 \bibitem{barabasi2016} BARABÁSI, Albert-László. \emph{Network Science}.
 Cambridge: Cambridge University Press, 2016. Disponível em:
-\url{http://networksciencebook.com}. Acesso em: jun. 2025.
+\url{http://networksciencebook.com}. Acesso em: nov. 2026.
 \end{thebibliography}
 
 \end{document}
