@@ -76,18 +76,14 @@ Seção~\ref{sec:disponibilidade}.
 \section{Determinação do grafo}
 \label{sec:determinacao}
 
-Seja \(S(M)\) a soma dos dígitos da matrícula \(M\) e
-\(U(M)\) o número formado pelos dois últimos dígitos. O
-índice é \(g=[S(M)(U(M)+1)]\bmod 129\). Para
-\(M=224215943\), temos \(U(M)=43\) e
-\[
-  S(M)=2+2+4+2+1+5+9+4+3=32.
-\]
-Logo,
-\[
-  g=[32(43+1)]\bmod 129=1408\bmod 129=118.
-\]
-A regra usa 129 quando o resto é zero. O índice G118 corresponde a \emph{web-Amazon}
+A regra da disciplina multiplica a soma dos dígitos da matrícula
+pelos dois últimos dígitos mais um e toma o resto da divisão por 129,
+usando 129 quando o resto é zero. Para a matrícula 224215943:
+\begin{gather*}
+  2+2+4+2+1+5+9+4+3=32,\\
+  32\times(43+1)=1408,\qquad 1408\bmod 129=118.
+\end{gather*}
+O índice G118 corresponde a \emph{web-Amazon}
 (\emph{Amazon reviews}) no catálogo da disciplina.
 
 \paragraph{O grafo original.}
@@ -1044,18 +1040,35 @@ processo mais próximo de multiplicativo que de ligação preferencial.
 
 \section{Conclusão}
 
-A rede de coavaliações tem poucos pares ligados diretamente, mas
-caminhos curtos dentro da maior componente. A cauda dos graus é
-pesada, sem ser uma lei de potência pura. A rede resiste a falhas
-aleatórias, e os ataques direcionados a degradam só moderadamente:
-soltam a periferia, mas o núcleo continua conexo. O agrupamento elevado vem da projeção em cliques, como
-mostrou o nulo bipartido, e não deve ser lido como propriedade da
-rede. O achado mais forte é a organização por família de console:
-55,2\% das arestas ficam dentro da família, contra 9,7\% ao acaso,
-e os consoles concentram ligações com outros aparelhos, inclusive de
-marcas rivais. Entre os modelos clássicos, nenhum reproduz a rede:
-Barabási--Albert acerta a cauda, e só a projeção de um bipartido
-aleatório acerta o agrupamento.
+O principal resultado deste trabalho é que os usuários tendem a
+permanecer no ecossistema de um console. A rede foi construída só com
+os pares usuário--produto, sem nenhum rótulo, e mesmo assim 55,2\% das
+arestas ligam produtos da mesma família de console, contra 9,7\%
+esperados ao acaso. Quem avalia um produto de uma plataforma tende a
+avaliar outros da mesma plataforma, e quanto mais forte a coavaliação,
+mais ela fica dentro da família: entre as três arestas mais pesadas de
+cada produto, a fração sobe para 76\%. As exceções também têm leitura
+de mercado. Os pares cruzados mais fortes ligam consoles rivais da
+mesma geração, como PlayStation 4 e Xbox One, ou gerações sucessivas
+da mesma marca, como Xbox 360 e Xbox One.
+
+Esse é também o único traço da rede que a projeção não explica
+sozinha. A clusterização elevada aparece igual num bipartido
+aleatório, mas os caminhos da rede real são mais longos que os dele
+(3,78 contra 2,89 saltos): cada família forma um bloco ligado às
+outras por poucas pontes, e os ataques direcionados soltam justamente
+ilhas de uma só plataforma.
+
+As demais propriedades completam o quadro. A rede tem poucos pares
+ligados diretamente, mas caminhos curtos dentro da maior componente.
+A cauda dos graus é pesada, sem ser uma lei de potência pura. A rede
+resiste a falhas aleatórias, e os ataques direcionados a degradam só
+moderadamente: soltam a periferia, mas o núcleo continua conexo. Entre
+os modelos clássicos, nenhum reproduz a rede: Barabási--Albert acerta
+a cauda, e só a projeção de um bipartido aleatório acerta o
+agrupamento. Como as arestas vêm de avaliações, e não de compras, o
+achado descreve onde os usuários concentram suas avaliações; afirmar
+fidelidade de compra exigiria filtrar as compras verificadas.
 
 Como próximos passos, propomos repetir as medidas nos limiares
 alternativos, filtrar compras verificadas, separar janelas de tempo
